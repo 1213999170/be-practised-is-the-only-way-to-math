@@ -26,7 +26,7 @@
         };
 
         var n = 50;
-        var cols = 4;
+        var cols = 5;
 
         var currentExpressions = [];
         var originalExpressions = [];
@@ -208,11 +208,13 @@
         }
 
         #expression p {
+            font-size: 20px;
             margin: 3px 5px;
-            width: 300px;
+            width: 240px;
             display: inline-block;
             word-wrap: normal;
             white-space: nowrap;
+            font-size: 20px;
         }
 
         .time-info {
@@ -224,6 +226,23 @@
             body {
                 min-width: auto !important;
                 overflow-x: hidden !important;
+                font-family: "SimSun", "Songti SC", "STSong", "Microsoft YaHei", sans-serif !important;
+            }
+            .btn-styled, .donate-section, div[style*="border-top"], div[style*="justify-content"], a[href], #history, #printBtn {
+                display: none !important;
+            }
+            h1 {
+                font-size: 24px !important;
+                margin-bottom: 10px !important;
+            }
+            #expression p {
+                font-size: 20px !important;
+                font-family: "SimSun", "Songti SC", "STSong", "Microsoft YaHei", sans-serif !important;
+            }
+            .time-info {
+                display: block !important;
+                font-style: italic !important;
+                color: #666 !important;
             }
         }
         
