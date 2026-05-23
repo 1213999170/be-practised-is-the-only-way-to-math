@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>数学熟练度 - 多项式展开练习</title>
+    <script>
+        // 多项式展开练习
+        // 5道题: (a + bx + cx²)(d + ex + fx²) = 一元多项式，从高次到低次
+        // 5道题: (ax + by + cz)(dx + ey + fz) = 二元多项式，按 x², y², z², yz, zx, xy 顺序
+
+        function getRandom(min, max) {
+            var r = Math.floor(Math.random() * (max - min + 1)) + min;
+            return r === 0 ? (r >= 0 ? 1 : -1) : r;
+        }
+        
+        function getNonZeroRandom(min, max) {
+            var r = getRandom(min, max);
+            while (r === 0) {
+                r = getRandom(min, max);
+            }
+            return r;
+        }
+
+        function formatCoeff(n, variable) {
+            if (n === 0) return "";
+            if (n === 1) return variable;
+            if (n === -1) return "-" + variable;
+            // For negative, show with - already
+            return n + variable;
+        }
+        
+        function formatTerm(n, variable, isFirst) {
+            if (n === 0) return "";
+            var sign = n < 0 ? " - " : (isFirst ? "" : " + ");
+            var prefix = (isFirst || n < 0) ? "" : " ";
+            var absN = Math.abs(n);
+            if (absN === 1) return prefix + sign + variable;
+            return prefix + sign + absN + variable;
+        }
+
+
+        function expressionType1() {
+            var a = getNonZeroRandom(-9, 9);
+            var b = getNonZeroRandom(-9, 9);
+            var c = getNonZeroRandom(-9, 9);
+            var d = getNonZeroRandom(-9, 9);
+            var e = getNonZeroRandom(-9, 9);
+            var f = getNonZeroRandom(-9, 9);
+            
+            var ad = a * d;
+            var ae = a * e;
+            var bd = b * d;
+            var af = a * f;
+            var be = b * e;
+            var cd = c * d;
+            var bf = b * f;
+            var ce = c * e;
+            var cf = c * f;
+            
+            var coeff4 = cf;     // x⁴ 系数
+            var coeff3 = bf + ce;  // x³ 系数
+            var coeff2 = af + be + cd; // x² 系数
+            var coeff1 = ae + bd;  // x 系数
+            var coeff0 = ad;      // 常数
+            
+            // Build expression string
+            var terms1 = [];
+            if (c !== 0) terms1.push(formatTerm(c, "x²", terms1.length === 0));
+            if (b !== 0) terms1.push(formatTerm(b, "x", terms1.length === 0));
+            if (a !== 0) terms1.push((terms1.length === 0 ? "" : (a < 0 ? " - " : " + ")) + Math.abs(a));
+            var expr1 = terms1.join("");
+            var terms2 = [];
+            if (f !== 0) terms2.push(formatTerm(f, "x²", terms2.length === 0));
+            if (e !== 0) terms2.push(formatTerm(e, "x", terms2.length === 0));
+            if (d !== 0) terms2.push((terms2.length === 0 ? "" : (d < 0 ? " - " : " + ")) + Math.abs(d));
+            var expr2 = terms2.join("");
+            var expr = "(" + expr1 + ")(" + expr2 + ") = ";
+            
+            // Build answer string - 从高次到低次，处理负数
+            var terms = [];
+            // x⁴
+            if (coeff4 !== 0) {
+                terms.push(formatTerm(coeff4, 'x⁴', terms.length === 0));
+            }
+            // x³
+            if (coeff3 !== 0) {
+                terms.push(formatTerm(coeff3, 'x³', terms.length === 0));
+            }
+            // x²
+            if (coeff2 !== 0) {
+                terms.push(formatTerm(coeff2, 'x²', terms.length === 0));
+            }
+            // x
+            if (coeff1 !== 0) {
+                terms.push(formatTerm(coeff1, 'x', terms.length === 0));
+            }
+            // 常数
+            if (coeff0 !== 0) {
+                var sign = coeff0 < 0 ? "-" : (terms.length === 0 ? "" : "+");
+                terms.push(sign + Math.abs(coeff0));
+            }
+            
+            var answer = terms.join(' ');
+            
+            return {
+                expression: expr,
+                answer: answer,
+                type: 1
+            };
+        }
+
+        function expressionType2() {
+            var a = getNonZeroRandom(-9, 9);
+            var b = getNonZeroRandom(-9, 9);
+            var c = getNonZeroRandom(-9, 9);
+            var d = getNonZeroRandom(-9, 9);
+            var e = getNonZeroRandom(-9, 9);
+            var f = getNonZeroRandom(-9, 9);
+            
+            var ad = a * d;
+            var be = b * e;
+            var cf = c * f;
+            var ae = a * e;
+            var bd = b * d;
+            var xy = ae + bd;
+            var af = a * f;
+            var cd = c * d;
+            var xz = af + cd;
+            var bf = b * f;
+            var ce = c * e;
+            var yz = bf + ce;
+            
+            // Build expression string
+            var terms1 = [];
+            if (a !== 0) terms1.push(formatTerm(a, "x", terms1.length === 0));
+            if (b !== 0) terms1.push(formatTerm(b, "y", terms1.length === 0));
+            if (c !== 0) terms1.push((terms1.length === 0 ? "" : (c < 0 ? " - " : " + ")) + Math.abs(c));
+            var expr1 = terms1.join("");
+            var terms2 = [];
+            if (d !== 0) terms2.push(formatTerm(d, "x", terms2.length === 0));
+            if (e !== 0) terms2.push(formatTerm(e, "y", terms2.length === 0));
+            if (f !== 0) terms2.push((terms2.length === 0 ? "" : (f < 0 ? " - " : " + ")) + Math.abs(f));
+            var expr2 = terms2.join("");
+            var expr = "(" + expr1 + ")(" + expr2 + ") = ";
+            
+            // Build answer string - 按 x², y², z², yz, zx, xy 顺序，处理负数
+            var terms = [];
+            // x²
+            if (ad !== 0) terms.push(formatTerm(ad, 'x²', terms.length === 0));
+            // y²
+            if (be !== 0) terms.push(formatTerm(be, 'y²', terms.length === 0));
+            // z²
+            if (cf !== 0) terms.push(formatTerm(cf, 'z²', terms.length === 0));
+            // yz
+            if (yz !== 0) terms.push(formatTerm(yz, 'yz', terms.length === 0));
+            // xz
+            if (xz !== 0) terms.push(formatTerm(xz, 'xz', terms.length === 0));
+            // xy
+            if (xy !== 0) terms.push(formatTerm(xy, 'xy', terms.length === 0));
+            
+            var answer = terms.join(' ');
+            
+            return {
+                expression: expr,
+                answer: answer,
+                type: 2
+            };
+        }
+
+        var n = 10;
+        var cols = 1;
+        
+        var currentExpressions = [];
+        var originalExpressions = [];
+        var historyRecords = [];
+        var historyIndex = 0;
+        var hasGenerated = false;
+
+        function createExpressionLine(outputDiv, expressions) {
+            expressions.forEach(function(expr) {
+                var p = document.createElement('p');
+                p.textContent = expr.expression;
+                p.dataset.answer = expr.answer;
+                
+                outputDiv.appendChild(p);
+                currentExpressions.push(p);
+            });
+        }
+
+        var originalExpressions = [];
+
+        function showAnswers() {
+            if (originalExpressions.length === 0) {
+                currentExpressions.forEach(function(p) {
+                    originalExpressions.push(p.textContent);
+                });
+            }
+            currentExpressions.forEach(function(p, index) {
+                if (originalExpressions[index]) {
+                    p.innerHTML = originalExpressions[index] + p.dataset.answer;
+                }
+            });
+        }
+
+        function hideAnswers() {
+            currentExpressions.forEach(function(p, index) {
+                if (originalExpressions[index]) {
+                    p.textContent = originalExpressions[index];
+                }
+            });
+        }
+
+        function formatTime(seconds) {
+            var minutes = Math.floor(seconds / 60);
+            var remainingSeconds = seconds % 60;
+            if (minutes > 0) {
+                return minutes + ' 分 ' + remainingSeconds + ' 秒';
+            }
+            return remainingSeconds + ' 秒';
+        }
+
+        function generateExpressions() {
+            var outputDiv = document.getElementById('expression');
+            outputDiv.textContent = '';
+
+            var expressions = [];
+            currentExpressions = [];
+            originalExpressions = [];
+
+            // Generate 5 of type 1
+            for (var i = 0; i < 5; i++) {
+                expressions.push(expressionType1());
+            }
+            // Generate 5 of type 2
+            for (var i = 0; i < 5; i++) {
+                expressions.push(expressionType2());
+            }
+
+            createExpressionLine(outputDiv, expressions);
+
+            var timeContainer = document.createElement('div');
+            timeContainer.className = 'time-info';
+            timeContainer.style.marginTop = '20px';
+
+            var passingP = document.createElement('p');
+            passingP.textContent = '合格线: ' + formatTime(300);
+            passingP.style.marginBottom = '5px';
+            timeContainer.appendChild(passingP);
+
+            var excellentP = document.createElement('p');
+            excellentP.textContent = '优秀线: ' + formatTime(150);
+            timeContainer.appendChild(excellentP);
+
+            outputDiv.appendChild(timeContainer);
+
+            if (!hasGenerated) {
+                hasGenerated = true;
+                var genBtn = document.getElementById('generateBtn');
+                var showBtn = document.getElementById('showAnswerBtn');
+                var hideBtn = document.getElementById('hideAnswerBtn');
+                
+                if (genBtn) genBtn.textContent = '重新生成';
+                if (showBtn) showBtn.style.display = 'inline-block';
+                if (hideBtn) hideBtn.style.display = 'inline-block';
+            }
+
+            addToHistory(expressions);
+        }
+
+        function addToHistory(expressions) {
+            historyIndex++;
+            var record = {
+                id: historyIndex,
+                expressions: JSON.parse(JSON.stringify(expressions)),
+                timestamp: new Date().toLocaleTimeString()
+            };
+            historyRecords.push(record);
+            
+            var historyItem = document.createElement('div');
+            historyItem.innerHTML = '记录 #' + historyIndex + ' - ' + record.timestamp;
+            historyItem.style.cursor = 'pointer';
+            historyItem.style.margin = '5px 0';
+            historyItem.style.padding = '5px';
+            historyItem.style.backgroundColor = '#f5f5f5';
+            historyItem.style.borderRadius = '3px';
+            historyItem.onclick = function() {
+                restoreFromHistory(record);
+            };
+            
+            document.getElementById('history').appendChild(historyItem);
+        }
+
+        function restoreFromHistory(record) {
+            var outputDiv = document.getElementById('expression');
+            outputDiv.textContent = '';
+            
+            currentExpressions = [];
+            originalExpressions = [];
+            createExpressionLine(outputDiv, record.expressions);
+
+            var timeContainer = document.createElement('div');
+            timeContainer.className = 'time-info';
+            timeContainer.style.marginTop = '20px';
+
+            var passingP = document.createElement('p');
+            passingP.textContent = '合格线: ' + formatTime(300);
+            passingP.style.marginBottom = '5px';
+            timeContainer.appendChild(passingP);
+
+            var excellentP = document.createElement('p');
+            excellentP.textContent = '优秀线: ' + formatTime(150);
+            timeContainer.appendChild(excellentP);
+
+            outputDiv.appendChild(timeContainer);
+        }
+
+        function printPage() {
+            window.print();
+        }
+    </script>
+    <style>
+        .btn-styled {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #3498db;
+            border: none;
+            border-radius: 4px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease-in-out;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .btn-styled:hover {
+            background-color: #2980b9;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        #printBtn {
+            margin-left: 400px;
+        }
+
+        #expression p {
+            margin: 3px 0;
+            
+            display: inline-block;
+            width: 780px;
+            word-wrap: normal;
+            font-size: 24px;
+            line-height: 1.6;
+        }
+
+        .time-info {
+            font-style: italic;
+            color: #666;
+        }
+
+        @media print {
+            body {
+                min-width: auto !important;
+                overflow-x: hidden !important;
+            }
+        }
+        
+        .donate-section {
+            margin-top: 30px;
+            border-top: 1px solid #ccc;
+            padding-top: 20px;
+            text-align: center;
+        }
+        
+        .donate-qr-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .qr-item {
+            text-align: center;
+        }
+        
+        .qr-item img {
+            width: 150px;
+            height: auto;
+            border: 1px solid #eee;
+            border-radius: 8px;
+        }
+    </style>
+<link rel="stylesheet" href="/.autoindex.css"></head>
+<body style="min-width: 1000px; overflow-x: auto;">
+    <h1>数学熟练度 - 多项式展开练习</h1>
+    
+    <div style="margin-bottom: 10px;">
+        <a href="https://www.baidu.com">上一篇文章</a>
+        <span style="margin: 0 20px;"></span>
+        <a href="https://www.baidu.com">下一篇文章</a>
+    </div>
+    
+    <button onclick="generateExpressions()" id="generateBtn" class="btn-styled">生成练习</button>
+    <button onclick="showAnswers()" id="showAnswerBtn" class="btn-styled" style="display: none;">显示答案</button>
+    <button onclick="hideAnswers()" id="hideAnswerBtn" class="btn-styled" style="display: none;">隐藏答案</button>
+    <button id="printBtn" onclick="printPage()" class="btn-styled">打印页面</button>
+
+    <div id="expression" style="margin-top: 20px;"></div>
+    
+    <div style="margin-top: 30px; border-top: 1px solid #ccc; padding-top: 20px;">
+        <h3>历史记录</h3>
+        <div id="history" style="max-height: 200px; overflow-y: auto;"></div>
+    </div>
+    
+    <div class="donate-section">
+        <div class="donate-qr-container">
+            <div class="qr-item">
+                <img src="donate_qr_alipay.jpg" alt="支付宝打赏">
+            </div>
+        </div>
+    </div>
+</body>
+</html>
