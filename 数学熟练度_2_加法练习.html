@@ -2,18 +2,21 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>数学熟练度 - 竖式乘法练习</title>
+    <title>数学熟练度 - 加法练习</title>
     <script>
         var expression = function() {
-            var a = getRandom(1000, 10000);
-            var b = getRandom(10000, 100000);
+            var a = getRandom(1, 10);
+            var b = getRandom(1, 10);
+            var c = getRandom(1, 10);
+            var d = getRandom(1, 10);
             return {
-                expression: a + ' × ' + b + ' = ',
-                answer: a * b
+                expression: a + ' + ' + b + ' + ' + c + ' + ' + d + ' = ',
+                answer: a + b + c + d
             };
         };
 
-        var n = 5;
+        var n = 30;
+        var cols = 3;
 
         var currentExpressions = [];
         var originalExpressions = [];
@@ -22,20 +25,21 @@
         var hasGenerated = false;
 
         function createExpressionLine(outputDiv, expressions) {
-            var lineDiv = document.createElement('div');
-            
+            var rowDiv;
             expressions.forEach(function(expr, index) {
+                if (index % cols === 0) {
+                    rowDiv = document.createElement('div');
+                    rowDiv.style.display = 'flex';
+                    outputDiv.appendChild(rowDiv);
+                }
+                
                 var p = document.createElement('p');
                 p.textContent = expr.expression;
                 p.dataset.answer = expr.answer;
                 
-                var br = document.createElement('br');
-                lineDiv.appendChild(br);
-                lineDiv.appendChild(p);
+                rowDiv.appendChild(p);
                 currentExpressions.push(p);
             });
-            
-            outputDiv.appendChild(lineDiv);
         }
 
         var originalExpressions = [];
@@ -90,14 +94,15 @@
 
             var timeContainer = document.createElement('div');
             timeContainer.className = 'time-info';
+            timeContainer.style.marginTop = '20px';
 
             var passingP = document.createElement('p');
-            passingP.textContent = '合格线: ' + formatTime(900);
+            passingP.textContent = '合格线: ' + formatTime(120);
             passingP.style.marginBottom = '5px';
             timeContainer.appendChild(passingP);
 
             var excellentP = document.createElement('p');
-            excellentP.textContent = '优秀线: ' + formatTime(450);
+            excellentP.textContent = '优秀线: ' + formatTime(60);
             timeContainer.appendChild(excellentP);
 
             outputDiv.appendChild(timeContainer);
@@ -149,14 +154,15 @@
 
             var timeContainer = document.createElement('div');
             timeContainer.className = 'time-info';
+            timeContainer.style.marginTop = '20px';
 
             var passingP = document.createElement('p');
-            passingP.textContent = '合格线: ' + formatTime(900);
+            passingP.textContent = '合格线: ' + formatTime(120);
             passingP.style.marginBottom = '5px';
             timeContainer.appendChild(passingP);
 
             var excellentP = document.createElement('p');
-            excellentP.textContent = '优秀线: ' + formatTime(450);
+            excellentP.textContent = '优秀线: ' + formatTime(60);
             timeContainer.appendChild(excellentP);
 
             outputDiv.appendChild(timeContainer);
@@ -193,17 +199,20 @@
 
         #expression p {
             font-size: 20px;
-            margin: 5px 5px;
-            width: 350px;
+            margin: 3px 5px;
+            width: 300px;
             display: inline-block;
             word-wrap: normal;
             white-space: nowrap;
         }
 
+        #expression div {
+            margin-bottom: 10px;
+        }
+
         .time-info {
             font-style: italic;
             color: #666;
-            margin-top: 0;
         }
 
         @media print {
@@ -269,7 +278,7 @@
     </style>
 <link rel="stylesheet" href="/.autoindex.css"></head>
 <body style="min-width: 1000px; overflow-x: auto;">
-    <h1>数学熟练度 3: 竖式乘法练习</h1>
+    <h1>数学熟练度 2: 加法练习</h1>
     
     <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
         <div>
@@ -283,7 +292,8 @@
     <button onclick="hideAnswers()" id="hideAnswerBtn" class="btn-styled" style="display: none;">隐藏答案</button>
     <button id="printBtn" onclick="printPage()" class="btn-styled">打印页面</button>
 
-    <div id="expression"></div>
+    <div id="expression" style="margin-top: 20px;"></div>
+    
     <div style="margin-top: 30px; border-top: 1px solid #ccc; padding-top: 20px;">
         <h3>历史记录</h3>
         <div id="history" style="max-height: 200px; overflow-y: auto;"></div>
