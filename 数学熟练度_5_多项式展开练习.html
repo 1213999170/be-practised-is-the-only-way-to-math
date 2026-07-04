@@ -6,7 +6,6 @@
     <script>
         // 多项式展开练习
         // 5道题: (a + bx + cx²)(d + ex + fx²) = 一元多项式，从高次到低次
-        // 5道题: (ax + by + cz)(dx + ey + fz) = 二元多项式，按 x², y², z², yz, zx, xy 顺序
 
         function getRandom(min, max) {
             var r = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -167,7 +166,7 @@
             };
         }
 
-        var n = 10;
+        var n = 5;
         var cols = 1;
         
         var currentExpressions = [];
@@ -231,10 +230,6 @@
             for (var i = 0; i < 5; i++) {
                 expressions.push(expressionType1());
             }
-            // Generate 5 of type 2
-            for (var i = 0; i < 5; i++) {
-                expressions.push(expressionType2());
-            }
 
             createExpressionLine(outputDiv, expressions);
 
@@ -248,7 +243,7 @@
             timeContainer.appendChild(passingP);
 
             var excellentP = document.createElement('p');
-            excellentP.textContent = '优秀线: ' + formatTime(150);
+            excellentP.textContent = '优秀线: ' + formatTime(105);
             timeContainer.appendChild(excellentP);
 
             outputDiv.appendChild(timeContainer);
@@ -344,13 +339,10 @@
         }
 
         #expression p {
-            font-size: 20px;
-            margin: 3px 0;
-            
-            display: inline-block;
-            width: 780px;
-            word-wrap: normal;
             font-size: 24px;
+            margin: 3px 0;
+            display: block;
+            word-wrap: normal;
             line-height: 1.6;
         }
 
