@@ -4,198 +4,131 @@
     <meta charset="UTF-8">
     <title>数学熟练度 - 简单多项式展开练习</title>
     <style>
-        .math-fraction {
+        .btn-styled {
             display: inline-block;
-            vertical-align: middle;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #3498db;
+            border: none;
+            border-radius: 4px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease-in-out;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .btn-styled:hover {
+            background-color: #2980b9;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        #printBtn {
+            margin-left: 400px;
+        }
+
+        #expression p {
+            font-size: 24px;
+            margin: 15px 0;
+            display: block;
+            line-height: 1.6;
+        }
+
+        .time-info {
+            font-style: italic;
+            color: #666;
+        }
+
+        @media print {
+            body {
+                min-width: auto !important;
+                overflow-x: hidden !important;
+                font-family: "SimSun", "Songti SC", "STSong", "Microsoft YaHei", sans-serif !important;
+            }
+            .btn-styled, .donate-section, div[style*="border-top"], div[style*="justify-content"], a[href], #history, #printBtn {
+                display: none !important;
+            }
+            h1 {
+                font-size: 24px !important;
+                margin-bottom: 10px !important;
+            }
+            #expression p {
+                font-size: 20px !important;
+                font-family: "SimSun", "Songti SC", "STSong", "Microsoft YaHei", sans-serif !important;
+            }
+            .time-info {
+                display: block !important;
+                font-style: italic !important;
+                color: #666 !important;
+            }
+        }
+
+        
+        .donate-section {
+            margin-top: 30px;
+            border-top: 1px solid #ccc;
+            padding-top: 20px;
             text-align: center;
-            font-size: 18px !important;  /* 统一字体大小 */
-            padding: 0 2px;
         }
-        .math-fraction .numerator {
-            display: block;
-            border-bottom: 1px solid #333;
-            padding: 0 2px;
-            line-height: 1;
+        
+        .donate-qr-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
         }
-        .math-fraction .denominator {
-            display: block;
-            padding: 0 2px;
-            line-height: 1;
+        
+        .qr-item {
+            text-align: center;
         }
-        .expr-line {
-            font-size: 18px !important;
-            margin: 10px 0;
-            font-family: 'Times New Roman', serif;
+        
+        .qr-item img {
+            width: 150px;
+            height: auto;
+            border: 1px solid #eee;
+            border-radius: 8px;
         }
     </style>
     <script>
-        // 简单多项式展开: (aP + bQ)(cP + dQ)
-        // P和Q是随机对
-        // 前6题固定(x,1)，后4题从其他对随机
+        // 简单多项式展开: (x + b)(x + d)
+        // b,d: -9~9，不为0
 
         function getRandom(min, max) {
-            var r = Math.floor(Math.random() * (max - min + 1)) + min;
-            return r === 0 ? (r >= 0 ? 1 : -1) : r;
+            return Math.floor(Math.random() * (max - min + 1)) + min;
         }
-        
+
         function getNonZeroRandom(min, max) {
             var r = getRandom(min, max);
-            while (r === 0) {
-                r = getRandom(min, max);
-            }
+            while (r === 0) r = getRandom(min, max);
             return r;
         }
 
-        var pqPairs = [
-            ['x²', '1'],
-            ['x', '1'],
-            ['x', '1/x'],
-            ['1', '1/x'],
-            ['x²', '1/x²']
-        ];
-
-        function formatTerm(n, variable, isFirst) {
-            if (n === 0) return "";
-            var sign = n < 0 ? " - " : (isFirst ? "" : " + ");
-            var absN = Math.abs(n);
-            if (absN === 1) return sign + variable;
-            return sign + absN + variable;
-        }
-
-        // 格式化单个项：系数*变量，化简显示
-        function formatPolyTerm(coeff, variable) {
+        function formatTerm(coeff, variable, isFirst) {
             if (coeff === 0) return "";
-            
-            // 如果variable是1，直接返回系数
-            if (variable === '1') {
-                return coeff > 0 ? String(coeff) : String(coeff);
-            }
-            
-            // 如果variable就是1或者系数为1
-            if (coeff === 1) {
-                return variable;
-            }
-            if (coeff === -1) {
-                return "-" + variable;
-            }
-            
-            return coeff + variable;
+            var sign = coeff < 0 ? " - " : (isFirst ? "" : " + ");
+            var absN = Math.abs(coeff);
+            if (absN === 1 && variable) return sign + variable;
+            return sign + absN + (variable || "");
         }
 
-        // 格式化多项式项，带符号处理
-        function formatPolyWithSign(coeff, variable, isFirst) {
-            if (coeff === 0) return "";
-            
-            var term = formatPolyTerm(coeff, variable);
-            if (isFirst) {
-                return term;
-            } else {
-                return (coeff > 0 ? " + " : " - ") + Math.abs(term);
-            }
-        }
-
-        function generateExpression(questionNum) {
-            // Coefficients
-            var a = getNonZeroRandom(-9, 9);
+        function generateExpression() {
             var b = getNonZeroRandom(-9, 9);
-            var c = getNonZeroRandom(-9, 9);
             var d = getNonZeroRandom(-9, 9);
-            
-            var P, Q, idx;
-            
-            if (questionNum < 6) {
-                // 前6题固定 (x, 1)
-                P = "x";
-                Q = "1";
-            } else {
-                // 后4题随机
-                idx = Math.floor(Math.random() * 4);
-                P = pqPairs[idx][0];
-                Q = pqPairs[idx][1];
-            }
-            
-            // Build question terms - simplified display
-            // 简化显示: 系数*变量，Q=1时只显示系数
-            // 生成分数 HTML
-            function makeFraction(numerator, denominator, isHtml) {
-                if (numerator === 0) return "";
-                if (isHtml) {
-                    // 负号放在整个分式前面
-                    var absNum = Math.abs(numerator);
-                    var sign = numerator < 0 ? "-" : "";
-                    if (sign) {
-                        return sign + '<span class="math-fraction"><span class="numerator">' + absNum + '</span><span class="denominator">' + denominator + '</span></span>';
-                    }
-                    return '<span class="math-fraction"><span class="numerator">' + absNum + '</span><span class="denominator">' + denominator + '</span></span>';
-                }
-                var sign = numerator < 0 ? "-" : "";
-                return sign + Math.abs(numerator) + "/" + denominator;
-            }
 
-            var makeTerm = function(coeff, variable) {
-                // 始终返回绝对值，符号由外部处理
-                if (variable === "1") {
-                    // 如果变量是1，只显示系数绝对值
-                    return String(Math.abs(coeff));
-                }
-                if (variable.startsWith("1/")) {
-                    // 倒数形式：1/x, 1/x²，分数显示
-                    var denominator = variable.slice(2); // 去掉开头的1/，得到 x 或 x²
-                    if (Math.abs(coeff) === 1) return makeFraction(1, denominator, true);
-                    return makeFraction(Math.abs(coeff), denominator, true);
-                }
-                if (Math.abs(coeff) === 1) return variable;
-                return Math.abs(coeff) + variable;
-            };
-            
-            var t1a = makeTerm(a, P);
-            var t1b = makeTerm(b, Q);
-            var t2c = makeTerm(c, P);
-            var t2d = makeTerm(d, Q);
-            
-            // 构建带HTML的表达式，加空格
-            var plusSign = " + ";
-            var minusSign = " - ";
-            var expr = "(" + t1a + (b >= 0 ? plusSign : minusSign) + t1b + ") (" + t2c + (d >= 0 ? plusSign : minusSign) + t2d + ") = ";
-            
-            // Calculate expanded: ac*P*P + (ad+bc)*P*Q + bd*Q*Q
-            var ac = a * c;
-            var pq = a * d + b * c;
-            var bd = b * d;
-            
-            var resultTerms = [];
-            
-            // Determine P*P, P*Q, Q*Q simplified forms
-            if (P === "x" && Q === "1") {
-                // x*x = x², x*1 = x, 1*1 = 1
-                if (ac !== 0) resultTerms.push((resultTerms.length === 0 ? " " : (ac < 0 ? " - " : " + ")) + Math.abs(ac) + "x²");
-                if (pq !== 0) resultTerms.push((resultTerms.length === 0 ? " " : (pq < 0 ? " - " : " + ")) + Math.abs(pq) + "x");
-                if (bd !== 0) resultTerms.push((resultTerms.length === 0 ? " " : (bd < 0 ? " - " : " + ")) + Math.abs(bd));
-            } else if (P === "x²" && Q === "1") {
-                if (ac !== 0) resultTerms.push((resultTerms.length === 0 ? " " : (ac < 0 ? " - " : " + ")) + Math.abs(ac) + "x⁴");
-                if (pq !== 0) resultTerms.push((resultTerms.length === 0 ? " " : (pq < 0 ? " - " : " + ")) + Math.abs(pq) + "x²");
-                if (bd !== 0) resultTerms.push((resultTerms.length === 0 ? " " : (bd < 0 ? " - " : " + ")) + Math.abs(bd));
-            } else if (P === "x" && Q === "1/x") {
-                // 分数形式
-                if (ac !== 0) resultTerms.push((resultTerms.length === 0 ? " " : (ac < 0 ? " - " : " + ")) + Math.abs(ac));
-                if (pq !== 0) resultTerms.push((resultTerms.length === 0 ? " " : (pq < 0 ? " - " : " + ")) + makeFraction(pq, "x", true));
-                if (bd !== 0) resultTerms.push((resultTerms.length === 0 ? " " : (bd < 0 ? " - " : " + ")) + makeFraction(bd, "x²", true));
-            } else if (P === "1" && Q === "1/x") {
-                if (ac !== 0) resultTerms.push((resultTerms.length === 0 ? " " : (ac < 0 ? " - " : " + ")) + Math.abs(ac));
-                if (pq !== 0) resultTerms.push((resultTerms.length === 0 ? " " : (pq < 0 ? " - " : " + ")) + makeFraction(pq, "x", true));
-                if (bd !== 0) resultTerms.push((resultTerms.length === 0 ? " " : (bd < 0 ? " - " : " + ")) + makeFraction(bd, "x²", true));
-            } else if (P === "x²" && Q === "1/x²") {
-                if (ac !== 0) resultTerms.push((resultTerms.length === 0 ? " " : (ac < 0 ? " - " : " + ")) + makeFraction(ac, "x⁴", true));
-                if (pq !== 0) resultTerms.push((resultTerms.length === 0 ? " " : (pq < 0 ? " - " : " + ")) + makeFraction(pq, "x²", true));
-                if (bd !== 0) resultTerms.push((resultTerms.length === 0 ? " " : (bd < 0 ? " - " : " + ")) + Math.abs(bd));
-            }
-            
-            var answer = resultTerms.join("");
-            
-            return {
-                expression: expr,
-                answer: answer
-            };
+            var expr = "(x" + (b >= 0 ? " + " : " - ") + Math.abs(b) + ") (x" +
+                       (d >= 0 ? " + " : " - ") + Math.abs(d) + ") = ";
+
+            var ac = 1;
+            var pq = d + b;
+            var bc = b * d;
+            var terms = [];
+            if (ac !== 0) terms.push(formatTerm(ac, "x²", terms.length === 0));
+            if (pq !== 0) terms.push(formatTerm(pq, "x", terms.length === 0));
+            if (bc !== 0) terms.push(formatTerm(bc, "", terms.length === 0));
+            var answer = terms.join(" ");
+
+            return { expression: expr, answer: answer };
         }
 
         var n = 10;
@@ -259,7 +192,7 @@
             originalExpressions = [];
 
             for (var i = 0; i < n; i++) {
-                expressions.push(generateExpression(i));
+                expressions.push(generateExpression());
             }
 
             createExpressionLine(outputDiv, expressions);
@@ -269,12 +202,12 @@
             timeContainer.style.marginTop = '20px';
 
             var passingP = document.createElement('p');
-            passingP.textContent = '合格线: ' + formatTime(300);
+            passingP.textContent = '合格线: ' + formatTime(60);
             passingP.style.marginBottom = '5px';
             timeContainer.appendChild(passingP);
 
             var excellentP = document.createElement('p');
-            excellentP.textContent = '优秀线: ' + formatTime(150);
+            excellentP.textContent = '优秀线: ' + formatTime(30);
             timeContainer.appendChild(excellentP);
 
             outputDiv.appendChild(timeContainer);
@@ -370,11 +303,9 @@
         }
 
         #expression p {
-            font-size: 20px;
-            margin: 3px 0;
-            width: 780px;
-            display: inline-block;
             font-size: 24px;
+            margin: 15px 0;
+            display: block;
             line-height: 1.6;
         }
 
