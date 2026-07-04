@@ -20,14 +20,6 @@
             return r;
         }
 
-        function formatCoeff(n, variable) {
-            if (n === 0) return "";
-            if (n === 1) return variable;
-            if (n === -1) return "-" + variable;
-            // For negative, show with - already
-            return n + variable;
-        }
-        
         function formatTerm(n, variable, isFirst) {
             if (n === 0) return "";
             var sign = n < 0 ? " - " : (isFirst ? "" : " + ");
@@ -108,66 +100,8 @@
             };
         }
 
-        function expressionType2() {
-            var a = getNonZeroRandom(-9, 9);
-            var b = getNonZeroRandom(-9, 9);
-            var c = getNonZeroRandom(-9, 9);
-            var d = getNonZeroRandom(-9, 9);
-            var e = getNonZeroRandom(-9, 9);
-            var f = getNonZeroRandom(-9, 9);
-            
-            var ad = a * d;
-            var be = b * e;
-            var cf = c * f;
-            var ae = a * e;
-            var bd = b * d;
-            var xy = ae + bd;
-            var af = a * f;
-            var cd = c * d;
-            var xz = af + cd;
-            var bf = b * f;
-            var ce = c * e;
-            var yz = bf + ce;
-            
-            // Build expression string
-            var terms1 = [];
-            if (a !== 0) terms1.push(formatTerm(a, "x", terms1.length === 0));
-            if (b !== 0) terms1.push(formatTerm(b, "y", terms1.length === 0));
-            if (c !== 0) terms1.push((terms1.length === 0 ? "" : (c < 0 ? " - " : " + ")) + Math.abs(c));
-            var expr1 = terms1.join("");
-            var terms2 = [];
-            if (d !== 0) terms2.push(formatTerm(d, "x", terms2.length === 0));
-            if (e !== 0) terms2.push(formatTerm(e, "y", terms2.length === 0));
-            if (f !== 0) terms2.push((terms2.length === 0 ? "" : (f < 0 ? " - " : " + ")) + Math.abs(f));
-            var expr2 = terms2.join("");
-            var expr = "(" + expr1 + ")(" + expr2 + ") = ";
-            
-            // Build answer string - 按 x², y², z², yz, zx, xy 顺序，处理负数
-            var terms = [];
-            // x²
-            if (ad !== 0) terms.push(formatTerm(ad, 'x²', terms.length === 0));
-            // y²
-            if (be !== 0) terms.push(formatTerm(be, 'y²', terms.length === 0));
-            // z²
-            if (cf !== 0) terms.push(formatTerm(cf, 'z²', terms.length === 0));
-            // yz
-            if (yz !== 0) terms.push(formatTerm(yz, 'yz', terms.length === 0));
-            // xz
-            if (xz !== 0) terms.push(formatTerm(xz, 'xz', terms.length === 0));
-            // xy
-            if (xy !== 0) terms.push(formatTerm(xy, 'xy', terms.length === 0));
-            
-            var answer = terms.join(' ');
-            
-            return {
-                expression: expr,
-                answer: answer,
-                type: 2
-            };
-        }
 
-        var n = 5;
-        var cols = 1;
+
         
         var currentExpressions = [];
         var originalExpressions = [];
