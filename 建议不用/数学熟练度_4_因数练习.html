@@ -2,62 +2,36 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>数学熟练度 - 质因数分解练习</title>
+    <title>数学熟练度 - 因数练习</title>
     <script>
-        // 质因数分解：把一个数分解成质因数相乘的形式，用指数表示
-        // 100以内随机40个不重复的数字
+        // 因数练习：写出一个数的所有因数
+        // 100以内随机10个不重复的数字
 
-        function getPrimeFactors(n) {
+        function getAllFactors(n) {
             var factors = [];
-            var d = 2;
-            var temp = n;
-            while (d * d <= temp) {
-                while (temp % d === 0) {
-                    factors.push(d);
-                    temp /= d;
+            for (var i = 1; i <= n; i++) {
+                if (n % i === 0) {
+                    factors.push(i);
                 }
-                d++;
-            }
-            if (temp > 1) {
-                factors.push(temp);
             }
             return factors;
         }
 
-        function formatFactorsWithExponents(factors) {
-            var grouped = {};
-            factors.forEach(function(f) {
-                if (grouped[f]) {
-                    grouped[f]++;
-                } else {
-                    grouped[f] = 1;
-                }
-            });
-            
-            var terms = [];
-            for (var prime in grouped) {
-                var count = grouped[prime];
-                if (count === 1) {
-                    terms.push(prime);
-                } else {
-                    // Generate superscript: <sup>count</sup>
-                    terms.push(prime + '<sup>' + count + '</sup>');
-                }
-            }
-            return terms.join('×');
+        function formatFactorsAsSet(factors) {
+            return '{' + factors.join(', ') + '}';
         }
 
         function formatExpression(n, factors) {
-            var expr = n + ' = ';
-            var answer = formatFactorsWithExponents(factors);
+            var expr = n + ': ';
+            var answer = formatFactorsAsSet(factors);
             return {
                 expression: expr,
                 answer: answer
             };
         }
 
-        var n = 40;
-        var cols = 4;
+        var n = 10;
+        var cols = 1;
         
         var availableNumbers = [];
         var currentExpressions = [];
@@ -78,8 +52,8 @@
                 availableNumbers[i] = availableNumbers[j];
                 availableNumbers[j] = temp;
             }
-            // Take first 40
-            availableNumbers = availableNumbers.slice(0, 40);
+            // Take first n
+            availableNumbers = availableNumbers.slice(0, n);
         }
 
         function createExpressionLine(outputDiv, expressions) {
@@ -148,7 +122,7 @@
 
             for (var i = 0; i < n; i++) {
                 var num = availableNumbers[i];
-                var factors = getPrimeFactors(num);
+                var factors = getAllFactors(num);
                 expressions.push(formatExpression(num, factors));
             }
 
@@ -335,7 +309,7 @@
     </style>
 <link rel="stylesheet" href="/.autoindex.css"></head>
 <body style="min-width: 1000px; overflow-x: auto;">
-    <h1>数学熟练度 - 质因数分解练习</h1>
+    <h1>数学熟练度 - 因数练习</h1>
     
     <div style="margin-bottom: 10px;">
         <a href="https://www.baidu.com">上一页</a>
