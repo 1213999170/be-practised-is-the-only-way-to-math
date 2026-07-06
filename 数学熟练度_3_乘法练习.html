@@ -29,8 +29,6 @@
                 p.textContent = expr.expression;
                 p.dataset.answer = expr.answer;
                 
-                var br = document.createElement('br');
-                lineDiv.appendChild(br);
                 lineDiv.appendChild(p);
                 currentExpressions.push(p);
             });
@@ -92,12 +90,12 @@
             timeContainer.className = 'time-info';
 
             var passingP = document.createElement('p');
-            passingP.textContent = '合格线: ' + formatTime(900);
+            passingP.textContent = '合格线: ' + formatTime(900) + '，连续三次完成';
             passingP.style.marginBottom = '5px';
             timeContainer.appendChild(passingP);
 
             var excellentP = document.createElement('p');
-            excellentP.textContent = '优秀线: ' + formatTime(300);
+            excellentP.textContent = '优秀线: ' + formatTime(300) + '，连续三次完成';
             timeContainer.appendChild(excellentP);
 
             outputDiv.appendChild(timeContainer);
@@ -151,12 +149,12 @@
             timeContainer.className = 'time-info';
 
             var passingP = document.createElement('p');
-            passingP.textContent = '合格线: ' + formatTime(900);
+            passingP.textContent = '合格线: ' + formatTime(900) + '，连续三次完成';
             passingP.style.marginBottom = '5px';
             timeContainer.appendChild(passingP);
 
             var excellentP = document.createElement('p');
-            excellentP.textContent = '优秀线: ' + formatTime(450);
+            excellentP.textContent = '优秀线: ' + formatTime(450) + '，连续三次完成';
             timeContainer.appendChild(excellentP);
 
             outputDiv.appendChild(timeContainer);
@@ -164,6 +162,73 @@
 
         function printPage() {
             window.print();
+        }
+
+        function showCustomDialog() {
+            document.getElementById('customDialog').classList.add('show');
+        }
+
+        function closeCustomDialog() {
+            document.getElementById('customDialog').classList.remove('show');
+        }
+
+        function startCustomPractice() {
+            var da = parseInt(document.getElementById('digitsA').value);
+            var db = parseInt(document.getElementById('digitsB').value);
+
+            var minA = Math.pow(10, da - 1);
+            var maxA = Math.pow(10, da) - 1;
+            var minB = Math.pow(10, db - 1);
+            var maxB = Math.pow(10, db) - 1;
+
+            var customExpr = function() {
+                var a = getRandom(minA, maxA);
+                var b = getRandom(minB, maxB);
+                return {
+                    expression: a + ' × ' + b + ' = ',
+                    answer: a * b
+                };
+            };
+
+            var outputDiv = document.getElementById('expression');
+            outputDiv.textContent = '';
+
+            var expressions = [];
+            currentExpressions = [];
+            originalExpressions = [];
+
+            for (var i = 0; i < 5; i++) {
+                expressions.push(customExpr());
+            }
+
+            expressions.forEach(function(expr) {
+                var p = document.createElement('p');
+                p.textContent = expr.expression;
+                p.dataset.answer = expr.answer;
+                outputDiv.appendChild(p);
+                currentExpressions.push(p);
+            });
+
+            var timeContainer = document.createElement('div');
+            timeContainer.className = 'time-info';
+            var passingP = document.createElement('p');
+            passingP.textContent = '合格线: -';
+            passingP.style.marginBottom = '5px';
+            timeContainer.appendChild(passingP);
+            var excellentP = document.createElement('p');
+            excellentP.textContent = '优秀线: -';
+            timeContainer.appendChild(excellentP);
+            outputDiv.appendChild(timeContainer);
+
+            if (!hasGenerated) {
+                hasGenerated = true;
+                document.getElementById('generateBtn').textContent = '重新生成';
+                document.getElementById('showAnswerBtn').style.display = 'inline-block';
+                document.getElementById('hideAnswerBtn').style.display = 'inline-block';
+            }
+
+            addToHistory(expressions);
+            closeCustomDialog();
         }
     </script>
     <style>
@@ -193,9 +258,9 @@
 
         #expression p {
             font-size: 20px;
-            margin: 5px 5px;
-            width: 350px;
-            display: inline-block;
+            margin: 35px 0;
+            display: block;
+            width: auto;
             word-wrap: normal;
             white-space: nowrap;
         }
@@ -266,6 +331,38 @@
             color: #666;
             font-size: 14px;
         }
+
+        .custom-dialog {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .custom-dialog.show { display: flex; }
+
+        .custom-dialog-content {
+            background: white;
+            padding: 25px 30px;
+            border-radius: 8px;
+            text-align: center;
+            min-width: 300px;
+        }
+        .custom-dialog-content label {
+            margin: 0 10px;
+            font-size: 16px;
+        }
+        .custom-dialog-content select {
+            font-size: 16px;
+            padding: 4px 8px;
+            margin: 0 5px;
+        }
+        .custom-dialog-content .btn-row {
+            margin-top: 20px;
+        }
     </style>
 <link rel="stylesheet" href="/.autoindex.css"></head>
 <body style="min-width: 1000px; overflow-x: auto;">
@@ -281,12 +378,42 @@
     <button onclick="generateExpressions()" id="generateBtn" class="btn-styled">生成练习</button>
     <button onclick="showAnswers()" id="showAnswerBtn" class="btn-styled" style="display: none;">显示答案</button>
     <button onclick="hideAnswers()" id="hideAnswerBtn" class="btn-styled" style="display: none;">隐藏答案</button>
+    <button onclick="showCustomDialog()" class="btn-styled">自定义练习</button>
     <button id="printBtn" onclick="printPage()" class="btn-styled">打印页面</button>
 
     <div id="expression"></div>
     <div style="margin-top: 30px; border-top: 1px solid #ccc; padding-top: 20px;">
         <h3>历史记录</h3>
         <div id="history" style="max-height: 200px; overflow-y: auto;"></div>
+    </div>
+
+    <div class="custom-dialog" id="customDialog">
+        <div class="custom-dialog-content">
+            <h3 style="margin-top: 0;">自定义乘法练习</h3>
+            <div>
+                <label>被乘数</label>
+                <select id="digitsA">
+                    <option value="1">1位数</option>
+                    <option value="2">2位数</option>
+                    <option value="3">3位数</option>
+                    <option value="4">4位数</option>
+                    <option value="5">5位数</option>
+                </select>
+                <label>×</label>
+                <label>乘数</label>
+                <select id="digitsB">
+                    <option value="1">1位数</option>
+                    <option value="2" selected>2位数</option>
+                    <option value="3">3位数</option>
+                    <option value="4">4位数</option>
+                    <option value="5">5位数</option>
+                </select>
+            </div>
+            <div class="btn-row">
+                <button onclick="startCustomPractice()" class="btn-styled">开始练习</button>
+                <button onclick="closeCustomDialog()" class="btn-styled">取消</button>
+            </div>
+        </div>
     </div>
     
     <div class="donate-section">
