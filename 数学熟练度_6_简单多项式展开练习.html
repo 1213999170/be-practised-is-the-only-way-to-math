@@ -151,8 +151,6 @@
             });
         }
 
-        var originalExpressions = [];
-
         function showAnswers() {
             if (originalExpressions.length === 0) {
                 currentExpressions.forEach(function(p) {
@@ -202,7 +200,7 @@
             timeContainer.style.marginTop = '20px';
 
             var passingP = document.createElement('p');
-            passingP.textContent = '合格线: ' + formatTime(60);
+            passingP.textContent = '合格线: -';
             passingP.style.marginBottom = '5px';
             timeContainer.appendChild(passingP);
 
@@ -262,7 +260,7 @@
             timeContainer.style.marginTop = '20px';
 
             var passingP = document.createElement('p');
-            passingP.textContent = '合格线: ' + formatTime(300);
+            passingP.textContent = '合格线: -';
             passingP.style.marginBottom = '5px';
             timeContainer.appendChild(passingP);
 
