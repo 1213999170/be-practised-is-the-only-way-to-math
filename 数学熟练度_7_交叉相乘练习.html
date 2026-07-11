@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>数学熟练度 - 交叉相乘练习</title>
+    <style>
+        .btn-styled {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #3498db;
+            border: none;
+            border-radius: 4px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease-in-out;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .btn-styled:hover {
+            background-color: #2980b9;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        #printBtn {
+            margin-left: 300px;
+        }
+
+        #expression {
+            font-size: 24px;
+            line-height: 1.6;
+        }
+
+        .question-row {
+            margin: 0 0 20px 0;
+            line-height: 1.8;
+        }
+
+        .fraction {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            vertical-align: middle;
+            margin: 0 3px;
+        }
+
+        .fraction .num {
+            border-bottom: 1.5px solid #333;
+            padding: 0 2px 2px 2px;
+        }
+
+        .fraction .den {
+            padding: 2px 2px 0 2px;
+        }
+
+        .time-info {
+            font-style: italic;
+            color: #666;
+        }
+
+        @media print {
+            body {
+                min-width: auto !important;
+                overflow-x: hidden !important;
+                font-family: "SimSun", "Songti SC", "STSong", "Microsoft YaHei", sans-serif !important;
+            }
+            .btn-styled, .donate-section, div[style*="border-top"], div[style*="justify-content"], a[href], #history, #printBtn {
+                display: none !important;
+            }
+            h1 {
+                font-size: 24px !important;
+                margin-bottom: 10px !important;
+            }
+            #expression {
+                font-size: 20px !important;
+                font-family: "SimSun", "Songti SC", "STSong", "Microsoft YaHei", sans-serif !important;
+            }
+            .fraction .num {
+                border-bottom-width: 1px !important;
+            }
+            .time-info {
+                display: block !important;
+                font-style: italic !important;
+                color: #666 !important;
+            }
+        }
+
+        .donate-section {
+            margin-top: 30px;
+            border-top: 1px solid #ccc;
+            padding-top: 20px;
+            text-align: center;
+        }
+
+        .donate-qr-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .qr-item {
+            text-align: center;
+        }
+
+        .qr-item img {
+            width: 150px;
+            height: auto;
+            border: 1px solid #eee;
+            border-radius: 8px;
+        }
+    </style>
+    <script>
+        // 交叉相乘: (ax+b)/(cx+d) = (ey+f)/(gy+h)
+        // a,b,c,d,e,f,g,h: -9~9，不为0
+        // 条件: ad≠bc, eh≠fg, ag≠ce
+
+        function getNonZeroRandom(min, max) {
+            var r = Math.floor(Math.random() * (max - min + 1)) + min;
+            while (r === 0) r = Math.floor(Math.random() * (max - min + 1)) + min;
+            return r;
+        }
+
+        function fraction(num, den) {
+            // 将负号统一提到前面
+            var numStr = Math.abs(num).toString();
+            var denStr = Math.abs(den).toString();
+            var sign = (num < 0) !== (den < 0) ? "-" : "";
+            return '<span class="fraction"><span class="num">' + sign + numStr + '</span><span class="den">' + denStr + '</span></span>';
+        }
+
+        function formatFraction(numerator, denominator) {
+            // 返回分数HTML，负号在分数前面
+            // 先约分
+            var num = -numerator;
+            var den = denominator;
+            var g = gcd(Math.abs(num), Math.abs(den));
+            num = num / g;
+            den = den / g;
+
+            // 如果分母是1或-1，直接返回约分后的整数
+            if (Math.abs(den) === 1) {
+                return (num / den).toString();
+            }
+            // 将负号统一到分子前面
+            var hasMinus = (num < 0) !== (den < 0);
+            var numStr = Math.abs(num).toString();
+            var denStr = Math.abs(den).toString();
+            if (hasMinus) {
+                return '-<span class="fraction"><span class="num">' + numStr + '</span><span class="den">' + denStr + '</span></span>';
+            } else {
+                return '<span class="fraction"><span class="num">' + numStr + '</span><span class="den">' + denStr + '</span></span>';
+            }
+        }
+
+        function gcd(a, b) {
+            a = Math.abs(a);
+            b = Math.abs(b);
+            while (b) {
+                var t = b;
+                b = a % b;
+                a = t;
+            }
+            return a;
+        }
+
+        function generateExpression() {
+            var a, b, c, d, e, f, g, h;
+
+            // 生成满足条件的随机数
+            do {
+                a = getNonZeroRandom(-9, 9);
+                b = getNonZeroRandom(-9, 9);
+                c = getNonZeroRandom(-9, 9);
+                d = getNonZeroRandom(-9, 9);
+                e = getNonZeroRandom(-9, 9);
+                f = getNonZeroRandom(-9, 9);
+                g = getNonZeroRandom(-9, 9);
+                h = getNonZeroRandom(-9, 9);
+            } while (
+                a * d === b * c ||  // ad ≠ bc
+                e * h === f * g ||  // eh ≠ fg
+                a * g === c * e     // ag ≠ ce
+            );
+
+            // 题目: (ax+b)/(cx+d) = (ey+f)/(gy+h)
+            // 使用分数线格式，加减号前后加空格
+            // 格式化系数为1或-1时显示为x/y
+            function fmtCoeff(n, v) {
+                if (n === 1) return v;
+                if (n === -1) return "-" + v;
+                return n + v;
+            }
+            var leftNum = fmtCoeff(a, "x") + (b >= 0 ? " + " : " - ") + Math.abs(b);
+            var leftDen = fmtCoeff(c, "x") + (d >= 0 ? " + " : " - ") + Math.abs(d);
+            var rightNum = fmtCoeff(e, "y") + (f >= 0 ? " + " : " - ") + Math.abs(f);
+            var rightDen = fmtCoeff(g, "y") + (h >= 0 ? " + " : " - ") + Math.abs(h);
+
+            var expr = '<span class="fraction"><span class="num">' + leftNum + '</span><span class="den">' + leftDen + '</span></span> = <span class="fraction"><span class="num">' + rightNum + '</span><span class="den">' + rightDen + '</span></span>';
+
+            // 计算答案: (ag-ce)xy + (ah-cf)x + (bg-de)y + (bh-df) = 0
+            var ag_ce = a * g - c * e;
+            var ah_cf = a * h - c * f;
+            var bg_de = b * g - d * e;
+            var bh_df = b * h - d * f;
+
+            // 如果 xy 系数为负，将所有项乘以 -1
+            if (ag_ce < 0) {
+                ag_ce = -ag_ce;
+                ah_cf = -ah_cf;
+                bg_de = -bg_de;
+                bh_df = -bh_df;
+            }
+
+            // 格式化为带空格的字符串
+            var terms = [];
+            if (ag_ce !== 0) {
+                if (ag_ce === 1) terms.push("xy");
+                else if (ag_ce === -1) terms.push("-xy");
+                else terms.push(ag_ce + "xy");
+            }
+            if (ah_cf !== 0) {
+                var s = terms.length > 0 ? (ah_cf > 0 ? " + " : " - ") : (ah_cf < 0 ? "- " : "");
+                var cVal = Math.abs(ah_cf);
+                terms.push(s + (cVal === 1 ? "" : cVal) + "x");
+            }
+            if (bg_de !== 0) {
+                var s = terms.length > 0 ? (bg_de > 0 ? " + " : " - ") : (bg_de < 0 ? "- " : "");
+                var dVal = Math.abs(bg_de);
+                terms.push(s + (dVal === 1 ? "" : dVal) + "y");
+            }
+            if (bh_df !== 0) {
+                var s = terms.length > 0 ? (bh_df > 0 ? " + " : " - ") : (bh_df < 0 ? "- " : "");
+                terms.push(s + Math.abs(bh_df));
+            }
+
+            var answerPoly = terms.join("") + " = 0";
+
+            // 限制条件: x ≠ -d/c, y ≠ -h/g
+            var xRestrict = "x ≠ " + formatFraction(d, c);
+            var yRestrict = "y ≠ " + formatFraction(h, g);
+            var restrictions = "且 " + xRestrict + "，" + yRestrict;
+
+            return {
+                expression: expr,
+                answer: "=&gt;&nbsp;" + answerPoly + "，" + restrictions
+            };
+        }
+
+        var n = 5;
+
+        var currentExpressions = [];
+        var originalExpressions = [];
+        var historyRecords = [];
+        var historyIndex = 0;
+        var hasGenerated = false;
+
+        function createExpressionLine(outputDiv, expressions) {
+            expressions.forEach(function(expr) {
+                var p = document.createElement('p');
+                p.className = 'question-row';
+                p.dataset.expression = expr.expression;
+                p.innerHTML = expr.expression;
+
+                outputDiv.appendChild(p);
+                currentExpressions.push({ element: p, answerText: expr.answer });
+            });
+        }
+
+        function showAnswers() {
+            currentExpressions.forEach(function(item) {
+                item.element.innerHTML = item.element.dataset.expression + '&nbsp;&nbsp;' + item.answerText;
+            });
+        }
+
+        function hideAnswers() {
+            currentExpressions.forEach(function(item) {
+                item.element.innerHTML = item.element.dataset.expression;
+            });
+        }
+
+        function formatTime(seconds) {
+            var minutes = Math.floor(seconds / 60);
+            var remainingSeconds = seconds % 60;
+            if (minutes > 0) {
+                return minutes + ' 分 ' + remainingSeconds + ' 秒';
+            }
+            return remainingSeconds + ' 秒';
+        }
+
+        function generateExpressions() {
+            var outputDiv = document.getElementById('expression');
+            outputDiv.innerHTML = '';
+
+            var expressions = [];
+            currentExpressions = [];
+            originalExpressions = [];
+
+            for (var i = 0; i < n; i++) {
+                expressions.push(generateExpression());
+            }
+
+            createExpressionLine(outputDiv, expressions);
+
+            var timeContainer = document.createElement('div');
+            timeContainer.className = 'time-info';
+            timeContainer.style.marginTop = '20px';
+
+            var noteP = document.createElement('p');
+            noteP.textContent = '注：答题时注意 x 和 y 的限制条件';
+            noteP.style.marginBottom = '10px';
+            timeContainer.appendChild(noteP);
+
+            var passingP = document.createElement('p');
+            passingP.textContent = '合格线: ' + formatTime(600) + '，连续三次完成';
+            passingP.style.marginBottom = '5px';
+            timeContainer.appendChild(passingP);
+
+            var excellentP = document.createElement('p');
+            excellentP.textContent = '优秀线: ' + formatTime(240) + '，连续三次完成';
+            excellentP.style.marginBottom = '5px';
+            timeContainer.appendChild(excellentP);
+
+            outputDiv.appendChild(timeContainer);
+
+            if (!hasGenerated) {
+                hasGenerated = true;
+                var genBtn = document.getElementById('generateBtn');
+                var showBtn = document.getElementById('showAnswerBtn');
+                var hideBtn = document.getElementById('hideAnswerBtn');
+
+                if (genBtn) genBtn.textContent = '重新生成';
+                if (showBtn) showBtn.style.display = 'inline-block';
+                if (hideBtn) hideBtn.style.display = 'inline-block';
+            }
+
+            addToHistory(expressions);
+        }
+
+        function addToHistory(expressions) {
+            historyIndex++;
+            var record = {
+                id: historyIndex,
+                expressions: JSON.parse(JSON.stringify(expressions)),
+                timestamp: new Date().toLocaleTimeString()
+            };
+            historyRecords.push(record);
+
+            var historyItem = document.createElement('div');
+            historyItem.innerHTML = '记录 #' + historyIndex + ' - ' + record.timestamp;
+            historyItem.style.cursor = 'pointer';
+            historyItem.style.margin = '5px 0';
+            historyItem.style.padding = '5px';
+            historyItem.style.backgroundColor = '#f5f5f5';
+            historyItem.style.borderRadius = '3px';
+            historyItem.onclick = function() {
+                restoreFromHistory(record);
+            };
+
+            document.getElementById('history').appendChild(historyItem);
+        }
+
+        function restoreFromHistory(record) {
+            var outputDiv = document.getElementById('expression');
+            outputDiv.innerHTML = '';
+
+            currentExpressions = [];
+            originalExpressions = [];
+            createExpressionLine(outputDiv, record.expressions);
+
+            var timeContainer = document.createElement('div');
+            timeContainer.className = 'time-info';
+            timeContainer.style.marginTop = '20px';
+
+            var passingP = document.createElement('p');
+            passingP.textContent = '合格线: ' + formatTime(600) + '，连续三次完成';
+            passingP.style.marginBottom = '5px';
+            timeContainer.appendChild(passingP);
+
+            var excellentP = document.createElement('p');
+            excellentP.textContent = '优秀线: ' + formatTime(240) + '，连续三次完成';
+            excellentP.style.marginBottom = '5px';
+            timeContainer.appendChild(excellentP);
+
+            outputDiv.appendChild(timeContainer);
+        }
+
+        function printPage() {
+            window.print();
+        }
+    </script>
+</head>
+<body style="min-width: 1000px; overflow-x: auto;">
+    <h1>数学熟练度 - 交叉相乘练习</h1>
+
+    <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <a href="http://106.15.232.237:8080/math/7291048372659073">上一页</a>
+        </div>
+        <a href="about:blank">下一页</a>
+    </div>
+
+    <button onclick="generateExpressions()" id="generateBtn" class="btn-styled">生成练习</button>
+    <button onclick="showAnswers()" id="showAnswerBtn" class="btn-styled" style="display: none;">显示答案</button>
+    <button onclick="hideAnswers()" id="hideAnswerBtn" class="btn-styled" style="display: none;">隐藏答案</button>
+    <button id="printBtn" onclick="printPage()" class="btn-styled">打印页面</button>
+
+    <div id="expression" style="margin-top: 20px;"></div>
+
+    <div style="margin-top: 30px; border-top: 1px solid #ccc; padding-top: 20px;">
+        <h3>历史记录</h3>
+        <div id="history" style="max-height: 200px; overflow-y: auto;"></div>
+    </div>
+
+    <div class="donate-section">
+        <div class="donate-qr-container">
+            <div class="qr-item">
+                <img src="donate_qr_alipay.jpg" alt="支付宝打赏">
+            </div>
+        </div>
+    </div>
+</body>
+</html>
