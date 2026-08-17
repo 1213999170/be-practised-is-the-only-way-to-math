@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>数学熟练度 - 简单多项式展开练习</title>
+    <title>数学熟练度 - 简单因式分解练习</title>
     <style>
         .btn-styled {
             display: inline-block;
@@ -91,7 +91,7 @@
         }
     </style>
     <script>
-        // 简单多项式展开: (x + b)(x + d)
+        // 简单因式分解: x² + (b+d)x + bd 分解为 (x + b)(x + d)
         // b,d: -9~9，不为0
 
         function getRandom(min, max) {
@@ -116,9 +116,6 @@
             var b = getNonZeroRandom(-9, 9);
             var d = getNonZeroRandom(-9, 9);
 
-            var expr = "(x" + (b >= 0 ? " + " : " - ") + Math.abs(b) + ") (x" +
-                       (d >= 0 ? " + " : " - ") + Math.abs(d) + ") = ";
-
             var ac = 1;
             var pq = d + b;
             var bc = b * d;
@@ -126,7 +123,10 @@
             if (ac !== 0) terms.push(formatTerm(ac, "x²", terms.length === 0));
             if (pq !== 0) terms.push(formatTerm(pq, "x", terms.length === 0));
             if (bc !== 0) terms.push(formatTerm(bc, "", terms.length === 0));
-            var answer = terms.join(" ");
+            var expr = terms.join(" ") + " = ";
+
+            var answer = "(x" + (b >= 0 ? " + " : " - ") + Math.abs(b) + ") (x" +
+                         (d >= 0 ? " + " : " - ") + Math.abs(d) + ")";
 
             return { expression: expr, answer: answer };
         }
@@ -364,7 +364,7 @@
     </style>
 <link rel="stylesheet" href="/.autoindex.css"></head>
 <body style="min-width: 1000px; overflow-x: auto;">
-    <h1>数学熟练度 - 简单多项式展开练习</h1>
+    <h1>数学熟练度 - 简单因式分解练习</h1>
     
     <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
         <div>
