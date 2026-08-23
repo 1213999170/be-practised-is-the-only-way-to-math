@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>数学熟练度 - 简单因式分解练习</title>
+    <title>数学熟练度 - 十字相乘法练习</title>
     <style>
         .btn-styled {
             display: inline-block;
@@ -91,7 +91,8 @@
         }
     </style>
     <script>
-        // 简单因式分解: x² + (b+d)x + bd 分解为 (x + b)(x + d)
+        // 十字相乘法: acx² + (ad+bc)x + bd 分解为 (ax + b)(cx + d)
+        // a,c: 1~9，不为0
         // b,d: -9~9，不为0
 
         function getRandom(min, max) {
@@ -112,12 +113,21 @@
             return sign + absN + (variable || "");
         }
 
+        function formatFactor(ax, b, isFirst) {
+            var sign = b < 0 ? " - " : (isFirst ? "" : " + ");
+            var absB = Math.abs(b);
+            if (ax === 1) return "(x" + sign + absB + ")";
+            return "(" + ax + "x" + sign + absB + ")";
+        }
+
         function generateExpression() {
+            var a = getNonZeroRandom(1, 9);
+            var c = getNonZeroRandom(1, 9);
             var b = getNonZeroRandom(-9, 9);
             var d = getNonZeroRandom(-9, 9);
 
-            var ac = 1;
-            var pq = d + b;
+            var ac = a * c;
+            var pq = a * d + b * c;
             var bc = b * d;
             var terms = [];
             if (ac !== 0) terms.push(formatTerm(ac, "x²", terms.length === 0));
@@ -125,8 +135,7 @@
             if (bc !== 0) terms.push(formatTerm(bc, "", terms.length === 0));
             var expr = terms.join(" ") + " = ";
 
-            var answer = "(x" + (b >= 0 ? " + " : " - ") + Math.abs(b) + ") (x" +
-                         (d >= 0 ? " + " : " - ") + Math.abs(d) + ")";
+            var answer = formatFactor(a, b, true) + formatFactor(c, d, false);
 
             return { expression: expr, answer: answer };
         }
@@ -205,7 +214,7 @@
             timeContainer.appendChild(passingP);
 
             var excellentP = document.createElement('p');
-            excellentP.textContent = '优秀线: ' + formatTime(30);
+            excellentP.textContent = '优秀线: ' + formatTime(60);
             timeContainer.appendChild(excellentP);
 
             outputDiv.appendChild(timeContainer);
@@ -265,7 +274,7 @@
             timeContainer.appendChild(passingP);
 
             var excellentP = document.createElement('p');
-            excellentP.textContent = '优秀线: ' + formatTime(150);
+            excellentP.textContent = '优秀线: ' + formatTime(60);
             timeContainer.appendChild(excellentP);
 
             outputDiv.appendChild(timeContainer);
