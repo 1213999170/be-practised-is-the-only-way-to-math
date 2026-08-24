@@ -128,8 +128,8 @@
             return sign + absN + (variable || "");
         }
 
-        function formatFactor(ax, b, isFirst) {
-            var sign = b < 0 ? " - " : (isFirst ? "" : " + ");
+        function formatFactor(ax, b) {
+            var sign = b < 0 ? " - " : " + ";
             var absB = Math.abs(b);
             if (ax === 1) return "(x" + sign + absB + ")";
             return "(" + ax + "x" + sign + absB + ")";
@@ -158,7 +158,7 @@
             if (bc !== 0) terms.push(formatTerm(bc, "", terms.length === 0));
             var expr = terms.join(" ") + " = ";
 
-            var answer = formatFactor(a, b, true) + formatFactor(c, d, false);
+            var answer = formatFactor(a, b) + formatFactor(c, d);
 
             return { expression: expr, answer: answer };
         }
