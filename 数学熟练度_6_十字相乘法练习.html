@@ -138,16 +138,8 @@
         function generateExpression() {
             var a = getNonZeroRandom(1, 5);
             var c = getNonZeroRandom(1, 5);
-            var b = getNonZeroRandom(-9, 9);
-            var d = getNonZeroRandom(-9, 9);
-
-            // 确保 a, b 互质，c, d 互质
-            while (!areCoprime(a, b)) {
-                b = getNonZeroRandom(-9, 9);
-            }
-            while (!areCoprime(c, d)) {
-                d = getNonZeroRandom(-9, 9);
-            }
+            var b = getNonZeroRandom(-5, 5);
+            var d = getNonZeroRandom(-5, 5);
 
             var ac = a * c;
             var pq = a * d + b * c;
