@@ -106,23 +106,24 @@
                 var showBtn = document.getElementById('showAnswerBtn');
                 var hideBtn = document.getElementById('hideAnswerBtn');
                 
-                if (genBtn) genBtn.textContent = '重新生成';
                 if (showBtn) showBtn.style.display = 'inline-block';
                 if (hideBtn) hideBtn.style.display = 'inline-block';
             }
 
-            addToHistory(expressions);
+            addToHistory(expressions, da, db);
         }
 
-        function addToHistory(expressions) {
+        function addToHistory(expressions, da, db) {
             historyIndex++;
             var record = {
                 id: historyIndex,
                 expressions: JSON.parse(JSON.stringify(expressions)),
-                timestamp: new Date().toLocaleTimeString()
+                timestamp: new Date().toLocaleTimeString(),
+                digitsA: da,
+                digitsB: db
             };
             historyRecords.push(record);
-            
+
             var historyItem = document.createElement('div');
             historyItem.innerHTML = '记录 #' + historyIndex + ' - ' + record.timestamp;
             historyItem.style.cursor = 'pointer';
@@ -133,14 +134,14 @@
             historyItem.onclick = function() {
                 restoreFromHistory(record);
             };
-            
+
             document.getElementById('history').appendChild(historyItem);
         }
 
         function restoreFromHistory(record) {
             var outputDiv = document.getElementById('expression');
             outputDiv.textContent = '';
-            
+
             currentExpressions = [];
             originalExpressions = [];
             createExpressionLine(outputDiv, record.expressions);
@@ -148,13 +149,18 @@
             var timeContainer = document.createElement('div');
             timeContainer.className = 'time-info';
 
+            var standards = getTimeStandards(record.digitsA, record.digitsB);
             var passingP = document.createElement('p');
-            passingP.textContent = '合格线: ' + formatTime(900) + '，连续三次完成';
+            if (standards.passing > 0) {
+                passingP.textContent = '合格线: ' + formatTime(standards.passing) + '，连续三次完成';
+            } else {
+                passingP.textContent = '合格线: -';
+            }
             passingP.style.marginBottom = '5px';
             timeContainer.appendChild(passingP);
 
             var excellentP = document.createElement('p');
-            excellentP.textContent = '优秀线: ' + formatTime(450) + '，连续三次完成';
+            excellentP.textContent = '优秀线：请练习4位数乘5位数';
             timeContainer.appendChild(excellentP);
 
             outputDiv.appendChild(timeContainer);
@@ -164,15 +170,64 @@
             window.print();
         }
 
-        function showCustomDialog() {
-            document.getElementById('customDialog').classList.add('show');
+        function getTimeStandards(da, db) {
+            // 1位数×2位数 或 2位数×1位数
+            if ((da === 1 && db === 2) || (da === 2 && db === 1)) {
+                return { passing: 20, excellent: 0 };
+            }
+            // 1位数×3位数 或 3位数×1位数
+            if ((da === 1 && db === 3) || (da === 3 && db === 1)) {
+                return { passing: 60, excellent: 0 };
+            }
+            // 1位数×4位数 或 4位数×1位数
+            if ((da === 1 && db === 4) || (da === 4 && db === 1)) {
+                return { passing: 90, excellent: 0 };
+            }
+            // 1位数×5位数 或 5位数×1位数
+            if ((da === 1 && db === 5) || (da === 5 && db === 1)) {
+                return { passing: 120, excellent: 0 };
+            }
+            // 2位数×2位数
+            if (da === 2 && db === 2) {
+                return { passing: 120, excellent: 0 };
+            }
+            // 2位数×3位数 或 3位数×2位数
+            if ((da === 2 && db === 3) || (da === 3 && db === 2)) {
+                return { passing: 180, excellent: 0 };
+            }
+            // 2位数×4位数 或 4位数×2位数
+            if ((da === 2 && db === 4) || (da === 4 && db === 2)) {
+                return { passing: 300, excellent: 0 };
+            }
+            // 2位数×5位数 或 5位数×2位数
+            if ((da === 2 && db === 5) || (da === 5 && db === 2)) {
+                return { passing: 420, excellent: 0 };
+            }
+            // 3位数×3位数
+            if (da === 3 && db === 3) {
+                return { passing: 300, excellent: 0 };
+            }
+            // 3位数×4位数 或 4位数×3位数
+            if ((da === 3 && db === 4) || (da === 4 && db === 3)) {
+                return { passing: 420, excellent: 0 };
+            }
+            // 3位数×5位数 或 5位数×3位数
+            if ((da === 3 && db === 5) || (da === 5 && db === 3)) {
+                return { passing: 600, excellent: 0 };
+            }
+            // 4位数×4位数
+            if (da === 4 && db === 4) {
+                return { passing: 660, excellent: 0 };
+            }
+            // 4位数×5位数 或 5位数×4位数
+            if ((da === 4 && db === 5) || (da === 5 && db === 4)) {
+                return { passing: 900, excellent: 0 };
+            }
+            // 其他组合无标准
+            return { passing: 0, excellent: 0 };
         }
 
-        function closeCustomDialog() {
-            document.getElementById('customDialog').classList.remove('show');
-        }
-
-        function startCustomPractice() {
+        function generateCustomExpressions() {
             var da = parseInt(document.getElementById('digitsA').value);
             var db = parseInt(document.getElementById('digitsB').value);
 
@@ -211,24 +266,30 @@
 
             var timeContainer = document.createElement('div');
             timeContainer.className = 'time-info';
+
+            var standards = getTimeStandards(da, db);
             var passingP = document.createElement('p');
-            passingP.textContent = '合格线: -';
+            if (standards.passing > 0) {
+                passingP.textContent = '合格线: ' + formatTime(standards.passing) + '，连续三次完成';
+            } else {
+                passingP.textContent = '合格线: -';
+            }
             passingP.style.marginBottom = '5px';
             timeContainer.appendChild(passingP);
+
             var excellentP = document.createElement('p');
-            excellentP.textContent = '优秀线: -';
+            excellentP.textContent = '优秀线：请练习4位数乘5位数';
             timeContainer.appendChild(excellentP);
+
             outputDiv.appendChild(timeContainer);
 
             if (!hasGenerated) {
                 hasGenerated = true;
-                document.getElementById('generateBtn').textContent = '重新生成';
                 document.getElementById('showAnswerBtn').style.display = 'inline-block';
                 document.getElementById('hideAnswerBtn').style.display = 'inline-block';
             }
 
             addToHistory(expressions);
-            closeCustomDialog();
         }
     </script>
     <style>
@@ -332,36 +393,34 @@
             font-size: 14px;
         }
 
-        .custom-dialog {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        .custom-dialog.show { display: flex; }
-
-        .custom-dialog-content {
-            background: white;
-            padding: 25px 30px;
-            border-radius: 8px;
-            text-align: center;
-            min-width: 300px;
-        }
-        .custom-dialog-content label {
+        .custom-separator {
             margin: 0 10px;
-            font-size: 16px;
+            color: #ccc;
+            font-size: 18px;
+            vertical-align: middle;
         }
-        .custom-dialog-content select {
+
+        .digit-select {
             font-size: 16px;
-            padding: 4px 8px;
-            margin: 0 5px;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: white;
+            cursor: pointer;
+            vertical-align: middle;
         }
-        .custom-dialog-content .btn-row {
-            margin-top: 20px;
+
+        .multiply-sign {
+            margin: 0 8px;
+            font-size: 18px;
+            color: #666;
+            vertical-align: middle;
+        }
+
+        @media print {
+            .digit-select, .multiply-sign, .custom-separator {
+                display: none !important;
+            }
         }
     </style>
 <link rel="stylesheet" href="/.autoindex.css"></head>
@@ -375,10 +434,26 @@
         <a href="http://106.15.232.237:8080/math/7291048372659014">下一页</a>
     </div>
     
-    <button onclick="generateExpressions()" id="generateBtn" class="btn-styled">生成练习</button>
+    <button onclick="generateExpressions()" id="generateBtn" class="btn-styled">生成推荐练习</button>
     <button onclick="showAnswers()" id="showAnswerBtn" class="btn-styled" style="display: none;">显示答案</button>
     <button onclick="hideAnswers()" id="hideAnswerBtn" class="btn-styled" style="display: none;">隐藏答案</button>
-    <button onclick="showCustomDialog()" class="btn-styled">自定义练习</button>
+    <span class="custom-separator">|</span>
+    <select id="digitsA" class="digit-select">
+        <option value="1">1位数</option>
+        <option value="2" selected>2位数</option>
+        <option value="3">3位数</option>
+        <option value="4">4位数</option>
+        <option value="5">5位数</option>
+    </select>
+    <span class="multiply-sign">×</span>
+    <select id="digitsB" class="digit-select">
+        <option value="1">1位数</option>
+        <option value="2" selected>2位数</option>
+        <option value="3">3位数</option>
+        <option value="4">4位数</option>
+        <option value="5">5位数</option>
+    </select>
+    <button onclick="generateCustomExpressions()" class="btn-styled">生成自定义</button>
     <button id="printBtn" onclick="printPage()" class="btn-styled">打印页面</button>
 
     <div id="expression"></div>
@@ -387,28 +462,7 @@
         <div id="history" style="max-height: 200px; overflow-y: auto;"></div>
     </div>
 
-    <div class="custom-dialog" id="customDialog">
-        <div class="custom-dialog-content">
-            <h3 style="margin-top: 0;">自定义乘法练习</h3>
-            <div>
-                <label>被乘数</label>
-                <select id="digitsA">
-                    <option value="1">1位数</option>
-                    <option value="2">2位数</option>
-                    <option value="3">3位数</option>
-                    <option value="4">4位数</option>
-                    <option value="5">5位数</option>
-                </select>
-                <label>×</label>
-                <label>乘数</label>
-                <select id="digitsB">
-                    <option value="1">1位数</option>
-                    <option value="2" selected>2位数</option>
-                    <option value="3">3位数</option>
-                    <option value="4">4位数</option>
-                    <option value="5">5位数</option>
-                </select>
-            </div>
+
             <div class="btn-row">
                 <button onclick="startCustomPractice()" class="btn-styled">开始练习</button>
                 <button onclick="closeCustomDialog()" class="btn-styled">取消</button>
