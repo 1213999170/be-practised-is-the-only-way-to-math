@@ -110,7 +110,8 @@
                 if (hideBtn) hideBtn.style.display = 'inline-block';
             }
 
-            addToHistory(expressions, da, db);
+            // 推荐练习固定为 4位数 × 5位数
+            addToHistory(expressions, 4, 5);
         }
 
         function addToHistory(expressions, da, db) {
@@ -289,7 +290,7 @@
                 document.getElementById('hideAnswerBtn').style.display = 'inline-block';
             }
 
-            addToHistory(expressions);
+            addToHistory(expressions, da, db);
         }
     </script>
     <style>
@@ -462,14 +463,6 @@
         <div id="history" style="max-height: 200px; overflow-y: auto;"></div>
     </div>
 
-
-            <div class="btn-row">
-                <button onclick="startCustomPractice()" class="btn-styled">开始练习</button>
-                <button onclick="closeCustomDialog()" class="btn-styled">取消</button>
-            </div>
-        </div>
-    </div>
-    
     <div class="donate-section">
         <h3></h3>
         <div class="donate-qr-container">

@@ -167,22 +167,24 @@
             return getNonZeroRandom(-9, 9);
         }
 
+        // 生成一个坐标/截距值：纯数字或带字母表达式
+        function generateNumberOrExpr(letter) {
+            if (Math.random() < 0.5) {
+                return { type: "number", value: generateNumber() };
+            }
+            return { type: "expr", value: generateExprWithLetter(letter) };
+        }
+
         // 生成斜率（纯数字或字母k）
         function generateSlope() {
-            if (Math.random() < 0.5) {
-                return { type: "number", value: getNonZeroRandom(-5, 5) };
-            } else {
-                return { type: "letter", value: "k" };
-            }
+            return Math.random() < 0.5
+                ? { type: "number", value: getNonZeroRandom(-5, 5) }
+                : { type: "letter", value: "k" };
         }
 
         // 格式化斜率显示
         function formatSlope(slope) {
-            if (slope.type === "letter") {
-                return slope.value;
-            } else {
-                return slope.value.toString();
-            }
+            return slope.value.toString();
         }
 
         // 判断是否为纯数字字符串
@@ -281,34 +283,28 @@
         // 点固定一个是纯数字，一个带字母（横带a，纵带b）
         function generatePointSlope() {
             var slope = generateSlope();
-            
+
             // 随机决定哪个是纯数字，哪个带字母
-            var isXNumber = Math.random() < 0.5;
             var x0, y0;
-            
-            if (isXNumber) {
+            if (Math.random() < 0.5) {
                 x0 = { type: "number", value: generateNumber() };
                 y0 = { type: "expr", value: generateExprWithLetter("b") };
             } else {
                 x0 = { type: "expr", value: generateExprWithLetter("a") };
                 y0 = { type: "number", value: generateNumber() };
             }
-            
-            var x0Str = x0.type === "number" ? x0.value : x0.value;
-            var y0Str = y0.type === "number" ? y0.value : y0.value;
-            
-            var expr = "斜率 = " + formatSlope(slope) + ", 过点(" + x0Str + ", " + y0Str + ")";
-            
+
+            var expr = "斜率 = " + formatSlope(slope) + ", 过点(" + x0.value + ", " + y0.value + ")";
+
             // 答案：y - y0 = k(x - x0)，合并双负号、拆掉括号
             // 斜率为纯数字时，直接乘进去展开
-            var answer;
-            if (slope.type === "number") {
-                answer = "y" + formatSubtractTerm(y0Str) + " = " + multiplyExpand("x" + formatSubtractTerm(x0Str), slope.value);
-            } else {
-                answer = "y" + formatSubtractTerm(y0Str) + " = " + formatSlope(slope) + "(x" + formatSubtractTerm(x0Str) + ")";
-            }
-            
-            return { expression: expr, answer: answer };
+            var left = "y" + formatSubtractTerm(y0.value);
+            var dx = "x" + formatSubtractTerm(x0.value);
+            var right = slope.type === "number"
+                ? multiplyExpand(dx, slope.value)
+                : formatSlope(slope) + "(" + dx + ")";
+
+            return { expression: expr, answer: left + " = " + right };
         }
 
         // 类型2：斜截式 - 给定斜率和截距
@@ -316,19 +312,11 @@
         function generateSlopeIntercept() {
             var slope = generateSlope();
 
-            // 截距：纯数字或带字母表达式（Y轴用b，X轴用a）
-            function generateInterceptValue(letter) {
-                if (Math.random() < 0.5) {
-                    return { type: "number", value: generateNumber() };
-                }
-                return { type: "expr", value: generateExprWithLetter(letter) };
-            }
-
             var expr, answer;
 
             if (Math.random() < 0.5) {
                 // Y轴截距形式
-                var intercept = generateInterceptValue("b");
+                var intercept = generateNumberOrExpr("b");
                 var interceptStr = intercept.value;
 
                 expr = "斜率 = " + formatSlope(slope) + ", Y轴截距 = " + interceptStr;
@@ -346,7 +334,7 @@
                 answer = "y = " + xTerm + formatAddTerm(interceptStr);
             } else {
                 // X轴截距形式
-                var xIntercept = generateInterceptValue("a");
+                var xIntercept = generateNumberOrExpr("a");
                 var xInterceptStr = xIntercept.value;
 
                 expr = "斜率 = " + formatSlope(slope) + ", X轴截距 = " + xInterceptStr;
@@ -433,68 +421,38 @@
 
         // 类型4：截距式 - 给定两个截距（不为0）
         // X轴截距带字母a，Y轴截距带字母b，或纯数字
+        // 构建单项：±1 时消去分母，负数时负号提到分数整体前面
+        function buildInterceptTerm(varName, intercept) {
+            if (intercept.type !== "number") {
+                return { term: fractionHTML(varName, intercept.value), neg: false };
+            }
+            if (intercept.value === 1) return { term: varName, neg: false };
+            if (intercept.value === -1) return { term: varName, neg: true };
+            if (intercept.value < 0) return { term: fractionHTML(varName, Math.abs(intercept.value).toString()), neg: true };
+            return { term: fractionHTML(varName, intercept.value.toString()), neg: false };
+        }
+
         function generateIntercept() {
-            // X轴截距
-            var xIntercept;
-            if (Math.random() < 0.5) {
-                xIntercept = { type: "number", value: getNonZeroRandom(-9, 9) };
-            } else {
-                xIntercept = { type: "expr", value: generateExprWithLetter("a") };
-            }
-            
-            // Y轴截距
-            var yIntercept;
-            if (Math.random() < 0.5) {
-                yIntercept = { type: "number", value: getNonZeroRandom(-9, 9) };
-            } else {
-                yIntercept = { type: "expr", value: generateExprWithLetter("b") };
-            }
-            
-            var xStr = xIntercept.type === "number" ? xIntercept.value : xIntercept.value;
-            var yStr = yIntercept.type === "number" ? yIntercept.value : yIntercept.value;
-            
-            var expr = "X轴截距 = " + xStr + ", Y轴截距 = " + yStr;
-            
+            var xIntercept = generateNumberOrExpr("a");
+            var yIntercept = generateNumberOrExpr("b");
+
+            var expr = "X轴截距 = " + xIntercept.value + ", Y轴截距 = " + yIntercept.value;
+
             // 答案：x/a + y/b = 1
-            // 分母为纯数字负数时，负号提到前面；-1 时直接消去分母
-            var xTerm, yTerm;
-            var xNeg = false, yNeg = false;
-
-            if (xIntercept.type === "number" && xIntercept.value === -1) {
-                xTerm = "x";
-                xNeg = true;
-            } else if (xIntercept.type === "number" && xIntercept.value === 1) {
-                xTerm = "x";
-            } else if (xIntercept.type === "number" && xIntercept.value < 0) {
-                xTerm = fractionHTML("x", Math.abs(xIntercept.value).toString());
-                xNeg = true;
-            } else {
-                xTerm = fractionHTML("x", xStr);
-            }
-
-            if (yIntercept.type === "number" && yIntercept.value === -1) {
-                yTerm = "y";
-                yNeg = true;
-            } else if (yIntercept.type === "number" && yIntercept.value === 1) {
-                yTerm = "y";
-            } else if (yIntercept.type === "number" && yIntercept.value < 0) {
-                yTerm = fractionHTML("y", Math.abs(yIntercept.value).toString());
-                yNeg = true;
-            } else {
-                yTerm = fractionHTML("y", yStr);
-            }
+            var xPart = buildInterceptTerm("x", xIntercept);
+            var yPart = buildInterceptTerm("y", yIntercept);
 
             var answer;
-            if (xNeg && yNeg) {
-                answer = "-" + xTerm + " - " + yTerm + " = 1";
-            } else if (xNeg) {
-                answer = "-" + xTerm + " + " + yTerm + " = 1";
-            } else if (yNeg) {
-                answer = xTerm + " - " + yTerm + " = 1";
+            if (xPart.neg && yPart.neg) {
+                answer = "-" + xPart.term + " - " + yPart.term + " = 1";
+            } else if (xPart.neg) {
+                answer = "-" + xPart.term + " + " + yPart.term + " = 1";
+            } else if (yPart.neg) {
+                answer = xPart.term + " - " + yPart.term + " = 1";
             } else {
-                answer = xTerm + " + " + yTerm + " = 1";
+                answer = xPart.term + " + " + yPart.term + " = 1";
             }
-            
+
             return { expression: expr, answer: answer };
         }
 
@@ -574,6 +532,24 @@
             return remainingSeconds + ' 秒';
         }
 
+        // 在输出区末尾附加合格线/优秀线说明
+        function appendTimeInfo(outputDiv) {
+            var timeContainer = document.createElement('div');
+            timeContainer.className = 'time-info';
+            timeContainer.style.marginTop = '20px';
+
+            var passingP = document.createElement('p');
+            passingP.textContent = '合格线: ' + formatTime(180) + '，连续三次完成';
+            passingP.style.marginBottom = '5px';
+            timeContainer.appendChild(passingP);
+
+            var excellentP = document.createElement('p');
+            excellentP.textContent = '优秀线: ' + formatTime(90) + '，连续三次完成';
+            timeContainer.appendChild(excellentP);
+
+            outputDiv.appendChild(timeContainer);
+        }
+
         function generateExpressions() {
             var outputDiv = document.getElementById('expression');
             outputDiv.textContent = '';
@@ -589,21 +565,7 @@
             }
 
             createExpressionLine(outputDiv, expressions);
-
-            var timeContainer = document.createElement('div');
-            timeContainer.className = 'time-info';
-            timeContainer.style.marginTop = '20px';
-
-            var passingP = document.createElement('p');
-            passingP.textContent = '合格线: ' + formatTime(180) + '，连续三次完成';
-            passingP.style.marginBottom = '5px';
-            timeContainer.appendChild(passingP);
-
-            var excellentP = document.createElement('p');
-            excellentP.textContent = '优秀线: ' + formatTime(90) + '，连续三次完成';
-            timeContainer.appendChild(excellentP);
-
-            outputDiv.appendChild(timeContainer);
+            appendTimeInfo(outputDiv);
 
             if (!hasGenerated) {
                 hasGenerated = true;
@@ -645,148 +607,14 @@
         function restoreFromHistory(record) {
             var outputDiv = document.getElementById('expression');
             outputDiv.textContent = '';
-            
+
             currentExpressions = [];
             originalExpressions = [];
             createExpressionLine(outputDiv, record.expressions);
-
-            var timeContainer = document.createElement('div');
-            timeContainer.className = 'time-info';
-            timeContainer.style.marginTop = '20px';
-
-            var passingP = document.createElement('p');
-            passingP.textContent = '合格线: ' + formatTime(180) + '，连续三次完成';
-            passingP.style.marginBottom = '5px';
-            timeContainer.appendChild(passingP);
-
-            var excellentP = document.createElement('p');
-            excellentP.textContent = '优秀线: ' + formatTime(90) + '，连续三次完成';
-            timeContainer.appendChild(excellentP);
-
-            outputDiv.appendChild(timeContainer);
+            appendTimeInfo(outputDiv);
         }
 
-        function printPage() {
-            window.print();
-        }
     </script>
-    <style>
-        .btn-styled {
-            display: inline-block;
-            padding: 10px 20px;
-            font-size: 16px;
-            color: white;
-            background-color: #3498db;
-            border: none;
-            border-radius: 4px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease-in-out;
-            cursor: pointer;
-            margin-right: 10px;
-        }
-
-        .btn-styled:hover {
-            background-color: #2980b9;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-            transform: translateY(-2px);
-        }
-
-        #printBtn {
-            margin-left: 400px;
-        }
-
-        #expression p {
-            font-size: 18px;
-            margin: 8px 0;
-            display: block;
-            line-height: 1.6;
-            min-height: 40px;
-        }
-
-        .fraction {
-            display: inline-flex;
-            flex-direction: column;
-            align-items: stretch;
-            vertical-align: middle;
-            margin: 0 2px;
-            line-height: 1.1;
-        }
-
-        .fraction .num {
-            border-bottom: 1.5px solid #333;
-            padding: 0 2px 0 2px;
-            font-size: 15px;
-            text-align: center;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .fraction .den {
-            padding: 0 2px 0 2px;
-            font-size: 15px;
-            text-align: center;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .time-info {
-            font-style: italic;
-            color: #666;
-        }
-
-        @media print {
-            body {
-                min-width: auto !important;
-                overflow-x: hidden !important;
-                font-family: "SimSun", "Songti SC", "STSong", "Microsoft YaHei", sans-serif !important;
-            }
-            .btn-styled, .donate-section, div[style*="border-top"], div[style*="justify-content"], a[href], #history, #printBtn {
-                display: none !important;
-            }
-            h1 {
-                font-size: 24px !important;
-                margin-bottom: 10px !important;
-            }
-            #expression p {
-                font-size: 18px !important;
-                font-family: "SimSun", "Songti SC", "STSong", "Microsoft YaHei", sans-serif !important;
-                margin: 8px 0 !important;
-                line-height: 1.6 !important;
-                min-height: 40px !important;
-            }
-            .time-info {
-                display: block !important;
-                font-style: italic !important;
-                color: #666 !important;
-            }
-        }
-
-        
-        .donate-section {
-            margin-top: 30px;
-            border-top: 1px solid #ccc;
-            padding-top: 20px;
-            text-align: center;
-        }
-        
-        .donate-qr-container {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            flex-wrap: wrap;
-        }
-        
-        .qr-item {
-            text-align: center;
-        }
-        
-        .qr-item img {
-            width: 150px;
-            height: auto;
-            border: 1px solid #eee;
-            border-radius: 8px;
-        }
-    </style>
 <link rel="stylesheet" href="/.autoindex.css"></head>
 <body style="min-width: 1000px; overflow-x: auto;">
     <h1>数学熟练度 - 直线方程练习</h1>
@@ -801,7 +629,7 @@
     <button onclick="generateExpressions()" id="generateBtn" class="btn-styled">生成练习</button>
     <button onclick="showAnswers()" id="showAnswerBtn" class="btn-styled" style="display: none;">显示答案</button>
     <button onclick="hideAnswers()" id="hideAnswerBtn" class="btn-styled" style="display: none;">隐藏答案</button>
-    <button id="printBtn" onclick="printPage()" class="btn-styled">打印页面</button>
+    <button id="printBtn" onclick="window.print()" class="btn-styled">打印页面</button>
 
     <div id="hintText" style="display: none; margin-top: 20px; font-style: italic; color: #666;">方程可以不化简</div>
     <div id="expression" style="margin-top: 10px;"></div>
