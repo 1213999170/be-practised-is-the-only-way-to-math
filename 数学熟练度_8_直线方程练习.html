@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>数学熟练度 - 直线方程练习</title>
+    <style>
+        .btn-styled {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #3498db;
+            border: none;
+            border-radius: 4px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease-in-out;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .btn-styled:hover {
+            background-color: #2980b9;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        #printBtn {
+            margin-left: 400px;
+        }
+
+        #expression p {
+            font-size: 18px;
+            margin: 8px 0;
+            display: block;
+            line-height: 1.6;
+            min-height: 40px;
+        }
+
+        .fraction {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: stretch;
+            vertical-align: middle;
+            margin: 0 2px;
+            line-height: 1.1;
+        }
+
+        .fraction .num {
+            border-bottom: 1.5px solid #333;
+            padding: 0 2px 0 2px;
+            font-size: 15px;
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .fraction .den {
+            padding: 0 2px 0 2px;
+            font-size: 15px;
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .time-info {
+            font-style: italic;
+            color: #666;
+        }
+
+        @media print {
+            body {
+                min-width: auto !important;
+                overflow-x: hidden !important;
+                font-family: "SimSun", "Songti SC", "STSong", "Microsoft YaHei", sans-serif !important;
+            }
+            .btn-styled, .donate-section, div[style*="border-top"], div[style*="justify-content"], a[href], #history, #printBtn {
+                display: none !important;
+            }
+            h1 {
+                font-size: 24px !important;
+                margin-bottom: 10px !important;
+            }
+            #expression p {
+                font-size: 18px !important;
+                font-family: "SimSun", "Songti SC", "STSong", "Microsoft YaHei", sans-serif !important;
+                margin: 8px 0 !important;
+                line-height: 1.6 !important;
+                min-height: 40px !important;
+            }
+            .time-info {
+                display: block !important;
+                font-style: italic !important;
+                color: #666 !important;
+            }
+        }
+
+        
+        .donate-section {
+            margin-top: 30px;
+            border-top: 1px solid #ccc;
+            padding-top: 20px;
+            text-align: center;
+        }
+        
+        .donate-qr-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .qr-item {
+            text-align: center;
+        }
+        
+        .qr-item img {
+            width: 150px;
+            height: auto;
+            border: 1px solid #eee;
+            border-radius: 8px;
+        }
+    </style>
+    <script>
+        // 直线方程练习
+        // 1. 点斜式：给定斜率和一点
+        // 2. 斜截式：给定斜率和截距
+        // 3. 两点式：给定两个点
+        // 4. 截距式：给定两个截距
+
+        function getRandom(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function getNonZeroRandom(min, max) {
+            var r = getRandom(min, max);
+            while (r === 0) r = getRandom(min, max);
+            return r;
+        }
+
+        // 生成带字母的表达式，如 "2a - 3"、"-a + 1"、"3b"
+        function generateExprWithLetter(letter) {
+            var coeff = getNonZeroRandom(-1, 3);
+            var constant = getRandom(-3, 5);
+            
+            var result = "";
+            // 系数部分
+            if (coeff === 1) {
+                result = letter;
+            } else if (coeff === -1) {
+                result = "-" + letter;
+            } else {
+                result = coeff + letter;
+            }
+            
+            // 常数部分
+            if (constant > 0) {
+                result += " + " + constant;
+            } else if (constant < 0) {
+                result += " - " + Math.abs(constant);
+            }
+            
+            return result;
+        }
+
+        // 生成纯数字
+        function generateNumber() {
+            return getNonZeroRandom(-9, 9);
+        }
+
+        // 生成斜率（纯数字或字母k）
+        function generateSlope() {
+            if (Math.random() < 0.5) {
+                return { type: "number", value: getNonZeroRandom(-5, 5) };
+            } else {
+                return { type: "letter", value: "k" };
+            }
+        }
+
+        // 格式化斜率显示
+        function formatSlope(slope) {
+            if (slope.type === "letter") {
+                return slope.value;
+            } else {
+                return slope.value.toString();
+            }
+        }
+
+        // 判断是否为纯数字字符串
+        function isPureNumber(str) {
+            return /^-?\d+$/.test(str);
+        }
+
+        // 表达式各项符号取反：如 "3a + 3" → "-3a - 3"，"-a - 2" → "a + 2"
+        function negateExpr(expr) {
+            var result;
+            if (expr.charAt(0) === '-') {
+                result = expr.substring(1);
+            } else {
+                result = "-" + expr;
+            }
+            // 互换后续项的符号
+            result = result.replace(/ \+ /g, " § ").replace(/ - /g, " + ").replace(/ § /g, " - ");
+            return result;
+        }
+
+        // 格式化 "A - term" 形式：合并双负号，拆掉括号
+        // 如 term = -6 → " + 6"；term = 5 → " - 5"；term = "3a + 3" → " - 3a - 3"；term = "-a - 2" → " + a + 2"
+        function formatSubtractTerm(term) {
+            term = term.toString().trim();
+            if (isPureNumber(term)) {
+                var num = parseInt(term);
+                if (num < 0) return " + " + (-num);
+                return " - " + num;
+            }
+            var negated = negateExpr(term);
+            if (negated.charAt(0) === '-') {
+                return " - " + negated.substring(1);
+            }
+            return " + " + negated;
+        }
+
+        // 格式化 "A + term" 形式：合并符号，拆掉括号
+        // 如 term = -2 → " - 2"；term = 1 → " + 1"；term = "2b - 1" → " + 2b - 1"；term = "-b + 2" → " - b + 2"
+        function formatAddTerm(term) {
+            term = term.toString().trim();
+            if (isPureNumber(term)) {
+                var num = parseInt(term);
+                if (num < 0) return " - " + (-num);
+                return " + " + num;
+            }
+            if (term.charAt(0) === '-') {
+                return " - " + term.substring(1);
+            }
+            return " + " + term;
+        }
+
+        // 将 "x ± ..." 形式的表达式乘以数字系数并展开
+        // 如 ("x - a - 2", -1) → "-x + a + 2"；("x - 2a + 3", 3) → "3x - 6a + 9"
+        function multiplyExpand(expr, coeff) {
+            // 解析各项，首项固定为 x
+            var terms = [{ sign: 1, body: "x" }];
+            var rest = expr.substring(1);
+            var regex = / ([+-]) ([a-z0-9]+)/g;
+            var m;
+            while ((m = regex.exec(rest)) !== null) {
+                terms.push({ sign: m[1] === '+' ? 1 : -1, body: m[2] });
+            }
+
+            var result = "";
+            for (var i = 0; i < terms.length; i++) {
+                var t = terms[i];
+                var newSign = t.sign * coeff;
+                var absCoeff = Math.abs(newSign);
+                var signChar = newSign > 0 ? "+" : "-";
+
+                // 解析 body 的数字前缀，如 "3a" → (3, "a")，"x" → (1, "x")，"3" → (3, "")
+                var pm = t.body.match(/^(\d*)(.*)$/);
+                var prefix = pm[1] === "" ? 1 : parseInt(pm[1]);
+                var remainder = pm[2];
+
+                var newCoeff = prefix * absCoeff;
+                var newBody;
+                if (remainder === "") {
+                    newBody = newCoeff.toString();
+                } else if (newCoeff === 1) {
+                    newBody = remainder;
+                } else {
+                    newBody = newCoeff + remainder;
+                }
+
+                if (i === 0) {
+                    result = (signChar === "-" ? "-" : "") + newBody;
+                } else {
+                    result += " " + signChar + " " + newBody;
+                }
+            }
+            return result;
+        }
+
+        // 类型1：点斜式 - 给定斜率和一点
+        // 点固定一个是纯数字，一个带字母（横带a，纵带b）
+        function generatePointSlope() {
+            var slope = generateSlope();
+            
+            // 随机决定哪个是纯数字，哪个带字母
+            var isXNumber = Math.random() < 0.5;
+            var x0, y0;
+            
+            if (isXNumber) {
+                x0 = { type: "number", value: generateNumber() };
+                y0 = { type: "expr", value: generateExprWithLetter("b") };
+            } else {
+                x0 = { type: "expr", value: generateExprWithLetter("a") };
+                y0 = { type: "number", value: generateNumber() };
+            }
+            
+            var x0Str = x0.type === "number" ? x0.value : x0.value;
+            var y0Str = y0.type === "number" ? y0.value : y0.value;
+            
+            var expr = "斜率 = " + formatSlope(slope) + ", 过点(" + x0Str + ", " + y0Str + ")";
+            
+            // 答案：y - y0 = k(x - x0)，合并双负号、拆掉括号
+            // 斜率为纯数字时，直接乘进去展开
+            var answer;
+            if (slope.type === "number") {
+                answer = "y" + formatSubtractTerm(y0Str) + " = " + multiplyExpand("x" + formatSubtractTerm(x0Str), slope.value);
+            } else {
+                answer = "y" + formatSubtractTerm(y0Str) + " = " + formatSlope(slope) + "(x" + formatSubtractTerm(x0Str) + ")";
+            }
+            
+            return { expression: expr, answer: answer };
+        }
+
+        // 类型2：斜截式 - 给定斜率和截距
+        // 随机使用 Y轴截距（y = kx + b）或 X轴截距（y = k(x - x0)）
+        function generateSlopeIntercept() {
+            var slope = generateSlope();
+
+            // 截距：纯数字或带字母表达式（Y轴用b，X轴用a）
+            function generateInterceptValue(letter) {
+                if (Math.random() < 0.5) {
+                    return { type: "number", value: generateNumber() };
+                }
+                return { type: "expr", value: generateExprWithLetter(letter) };
+            }
+
+            var expr, answer;
+
+            if (Math.random() < 0.5) {
+                // Y轴截距形式
+                var intercept = generateInterceptValue("b");
+                var interceptStr = intercept.value;
+
+                expr = "斜率 = " + formatSlope(slope) + ", Y轴截距 = " + interceptStr;
+
+                // 答案：y = kx + b，合并符号、拆掉括号
+                // 斜率为 1 或 -1 时，系数 1 省略
+                var xTerm;
+                if (slope.type === "number" && slope.value === 1) {
+                    xTerm = "x";
+                } else if (slope.type === "number" && slope.value === -1) {
+                    xTerm = "-x";
+                } else {
+                    xTerm = formatSlope(slope) + "x";
+                }
+                answer = "y = " + xTerm + formatAddTerm(interceptStr);
+            } else {
+                // X轴截距形式
+                var xIntercept = generateInterceptValue("a");
+                var xInterceptStr = xIntercept.value;
+
+                expr = "斜率 = " + formatSlope(slope) + ", X轴截距 = " + xInterceptStr;
+
+                // 答案：y = k(x - x0)，合并双负号、拆掉括号
+                answer = "y = " + formatSlope(slope) + "(x" + formatSubtractTerm(xInterceptStr) + ")";
+            }
+
+            return { expression: expr, answer: answer };
+        }
+
+        // 生成分数线 HTML
+        function fractionHTML(num, den) {
+            return '<span class="fraction"><span class="num">' + num + '</span><span class="den">' + den + '</span></span>';
+        }
+
+        // 合并表达式中的常数项
+        // 如 "b + 4 - 5" → "b - 1"；"3b - 2 + 6" → "3b + 4"；"2a + 3 - 3" → "2a"
+        function combineConstants(expr) {
+            var parts = expr.trim().split(" ");
+            var letterTerm = parts[0];
+            var constant = 0;
+            for (var i = 1; i < parts.length; i += 2) {
+                var sign = parts[i] === "+" ? 1 : -1;
+                constant += sign * parseInt(parts[i + 1]);
+            }
+
+            if (constant === 0) return letterTerm;
+            if (constant > 0) return letterTerm + " + " + constant;
+            return letterTerm + " - " + Math.abs(constant);
+        }
+
+        // 类型3：两点式 - 给定两个点
+        // 点A纯数字，点B一个纯数字一个带字母
+        // 题目中两点顺序随机打乱，答案仍以点A（纯数字）的坐标作为减数
+        function generateTwoPoint() {
+            // 点A：纯数字
+            var xA = generateNumber();
+            var yA = generateNumber();
+
+            // 点B：一个纯数字，一个带字母
+            // 纯数字坐标需与点A不同（避免分母为0）
+            var xB, yB;
+            if (Math.random() < 0.5) {
+                xB = { type: "number", value: getNonZeroRandom(-9, 9) };
+                while (xB.value === xA) xB.value = getNonZeroRandom(-9, 9);
+                yB = { type: "expr", value: generateExprWithLetter("b") };
+            } else {
+                xB = { type: "expr", value: generateExprWithLetter("a") };
+                yB = { type: "number", value: getNonZeroRandom(-9, 9) };
+                while (yB.value === yA) yB.value = getNonZeroRandom(-9, 9);
+            }
+
+            // 题目中随机打乱两点顺序
+            var expr;
+            if (Math.random() < 0.5) {
+                expr = "过点(" + xA + ", " + yA + ")和(" + xB.value + ", " + yB.value + ")";
+            } else {
+                expr = "过点(" + xB.value + ", " + yB.value + ")和(" + xA + ", " + yA + ")";
+            }
+
+            // 构建单侧式子：分母为纯数字运算时直接化简
+            // diff = 1 → 去掉分母；diff = -1 → 去掉分母并调整正负号
+            // diff 为负数 → 负号提到分数整体前面
+            // 分母为表达式时，合并其中的常数项
+            function buildSide(varName, v1, p2) {
+                var num = varName + formatSubtractTerm(v1);
+                if (p2.type === "number") {
+                    var diff = p2.value - v1;
+                    if (diff === 1) return num;
+                    if (diff === -1) return "-(" + num + ")";
+                    if (diff < 0) return "-" + fractionHTML(num, Math.abs(diff).toString());
+                    return fractionHTML(num, diff.toString());
+                }
+                return fractionHTML(num, combineConstants(p2.value + formatSubtractTerm(v1)));
+            }
+
+            var leftStr = buildSide("y", yA, yB);
+            var rightStr = buildSide("x", xA, xB);
+            var answer = leftStr + " = " + rightStr;
+
+            return { expression: expr, answer: answer };
+        }
+
+        // 类型4：截距式 - 给定两个截距（不为0）
+        // X轴截距带字母a，Y轴截距带字母b，或纯数字
+        function generateIntercept() {
+            // X轴截距
+            var xIntercept;
+            if (Math.random() < 0.5) {
+                xIntercept = { type: "number", value: getNonZeroRandom(-9, 9) };
+            } else {
+                xIntercept = { type: "expr", value: generateExprWithLetter("a") };
+            }
+            
+            // Y轴截距
+            var yIntercept;
+            if (Math.random() < 0.5) {
+                yIntercept = { type: "number", value: getNonZeroRandom(-9, 9) };
+            } else {
+                yIntercept = { type: "expr", value: generateExprWithLetter("b") };
+            }
+            
+            var xStr = xIntercept.type === "number" ? xIntercept.value : xIntercept.value;
+            var yStr = yIntercept.type === "number" ? yIntercept.value : yIntercept.value;
+            
+            var expr = "X轴截距 = " + xStr + ", Y轴截距 = " + yStr;
+            
+            // 答案：x/a + y/b = 1
+            // 分母为纯数字负数时，负号提到前面；-1 时直接消去分母
+            var xTerm, yTerm;
+            var xNeg = false, yNeg = false;
+
+            if (xIntercept.type === "number" && xIntercept.value === -1) {
+                xTerm = "x";
+                xNeg = true;
+            } else if (xIntercept.type === "number" && xIntercept.value === 1) {
+                xTerm = "x";
+            } else if (xIntercept.type === "number" && xIntercept.value < 0) {
+                xTerm = fractionHTML("x", Math.abs(xIntercept.value).toString());
+                xNeg = true;
+            } else {
+                xTerm = fractionHTML("x", xStr);
+            }
+
+            if (yIntercept.type === "number" && yIntercept.value === -1) {
+                yTerm = "y";
+                yNeg = true;
+            } else if (yIntercept.type === "number" && yIntercept.value === 1) {
+                yTerm = "y";
+            } else if (yIntercept.type === "number" && yIntercept.value < 0) {
+                yTerm = fractionHTML("y", Math.abs(yIntercept.value).toString());
+                yNeg = true;
+            } else {
+                yTerm = fractionHTML("y", yStr);
+            }
+
+            var answer;
+            if (xNeg && yNeg) {
+                answer = "-" + xTerm + " - " + yTerm + " = 1";
+            } else if (xNeg) {
+                answer = "-" + xTerm + " + " + yTerm + " = 1";
+            } else if (yNeg) {
+                answer = xTerm + " - " + yTerm + " = 1";
+            } else {
+                answer = xTerm + " + " + yTerm + " = 1";
+            }
+            
+            return { expression: expr, answer: answer };
+        }
+
+        function generateExpression() {
+            var type = getRandom(1, 4);
+            
+            switch(type) {
+                case 1: return generatePointSlope();
+                case 2: return generateSlopeIntercept();
+                case 3: return generateTwoPoint();
+                case 4: return generateIntercept();
+            }
+        }
+
+        var n = 10;
+        
+        var currentExpressions = [];
+        var originalExpressions = [];
+        var historyRecords = [];
+        var historyIndex = 0;
+        var hasGenerated = false;
+
+        function createExpressionLine(outputDiv, expressions) {
+            expressions.forEach(function(expr, index) {
+                var p = document.createElement('p');
+                p.className = 'expr-line';
+                p.innerHTML = (index + 1) + '. ' + expr.expression;
+                p.dataset.answer = expr.answer;
+                
+                outputDiv.appendChild(p);
+                currentExpressions.push(p);
+            });
+        }
+
+        function showAnswers() {
+            if (originalExpressions.length === 0) {
+                currentExpressions.forEach(function(p) {
+                    originalExpressions.push(p.textContent);
+                });
+            }
+
+            // 结构化：题目部分 + 箭头 + 答案部分
+            currentExpressions.forEach(function(p, index) {
+                if (originalExpressions[index]) {
+                    p.innerHTML = '<span class="q-part">' + originalExpressions[index] + '</span>' +
+                                  '<span class="arrow-part">&nbsp;&nbsp;=&gt;&nbsp;&nbsp;</span>' +
+                                  '<span class="a-part">' + p.dataset.answer + '</span>';
+                }
+            });
+
+            // 测量最长题目宽度，统一题目部分宽度（附加余量），使所有箭头对齐
+            var qParts = document.querySelectorAll('#expression .q-part');
+            var maxWidth = 0;
+            qParts.forEach(function(q) {
+                q.style.display = 'inline-block';
+                if (q.offsetWidth > maxWidth) maxWidth = q.offsetWidth;
+            });
+            qParts.forEach(function(q) {
+                q.style.width = (maxWidth + 40) + 'px';
+            });
+        }
+
+        function hideAnswers() {
+            currentExpressions.forEach(function(p, index) {
+                if (originalExpressions[index]) {
+                    p.textContent = originalExpressions[index];
+                }
+            });
+        }
+
+        function formatTime(seconds) {
+            var minutes = Math.floor(seconds / 60);
+            var remainingSeconds = seconds % 60;
+            if (minutes > 0) {
+                return minutes + ' 分 ' + remainingSeconds + ' 秒';
+            }
+            return remainingSeconds + ' 秒';
+        }
+
+        function generateExpressions() {
+            var outputDiv = document.getElementById('expression');
+            outputDiv.textContent = '';
+
+            document.getElementById('hintText').style.display = 'block';
+
+            var expressions = [];
+            currentExpressions = [];
+            originalExpressions = [];
+
+            for (var i = 0; i < n; i++) {
+                expressions.push(generateExpression());
+            }
+
+            createExpressionLine(outputDiv, expressions);
+
+            var timeContainer = document.createElement('div');
+            timeContainer.className = 'time-info';
+            timeContainer.style.marginTop = '20px';
+
+            var passingP = document.createElement('p');
+            passingP.textContent = '合格线: ' + formatTime(180) + '，连续三次完成';
+            passingP.style.marginBottom = '5px';
+            timeContainer.appendChild(passingP);
+
+            var excellentP = document.createElement('p');
+            excellentP.textContent = '优秀线: ' + formatTime(90) + '，连续三次完成';
+            timeContainer.appendChild(excellentP);
+
+            outputDiv.appendChild(timeContainer);
+
+            if (!hasGenerated) {
+                hasGenerated = true;
+                var genBtn = document.getElementById('generateBtn');
+                var showBtn = document.getElementById('showAnswerBtn');
+                var hideBtn = document.getElementById('hideAnswerBtn');
+                
+                if (genBtn) genBtn.textContent = '重新生成';
+                if (showBtn) showBtn.style.display = 'inline-block';
+                if (hideBtn) hideBtn.style.display = 'inline-block';
+            }
+
+            addToHistory(expressions);
+        }
+
+        function addToHistory(expressions) {
+            historyIndex++;
+            var record = {
+                id: historyIndex,
+                expressions: JSON.parse(JSON.stringify(expressions)),
+                timestamp: new Date().toLocaleTimeString()
+            };
+            historyRecords.push(record);
+            
+            var historyItem = document.createElement('div');
+            historyItem.innerHTML = '记录 #' + historyIndex + ' - ' + record.timestamp;
+            historyItem.style.cursor = 'pointer';
+            historyItem.style.margin = '5px 0';
+            historyItem.style.padding = '5px';
+            historyItem.style.backgroundColor = '#f5f5f5';
+            historyItem.style.borderRadius = '3px';
+            historyItem.onclick = function() {
+                restoreFromHistory(record);
+            };
+            
+            document.getElementById('history').appendChild(historyItem);
+        }
+
+        function restoreFromHistory(record) {
+            var outputDiv = document.getElementById('expression');
+            outputDiv.textContent = '';
+            
+            currentExpressions = [];
+            originalExpressions = [];
+            createExpressionLine(outputDiv, record.expressions);
+
+            var timeContainer = document.createElement('div');
+            timeContainer.className = 'time-info';
+            timeContainer.style.marginTop = '20px';
+
+            var passingP = document.createElement('p');
+            passingP.textContent = '合格线: ' + formatTime(180) + '，连续三次完成';
+            passingP.style.marginBottom = '5px';
+            timeContainer.appendChild(passingP);
+
+            var excellentP = document.createElement('p');
+            excellentP.textContent = '优秀线: ' + formatTime(90) + '，连续三次完成';
+            timeContainer.appendChild(excellentP);
+
+            outputDiv.appendChild(timeContainer);
+        }
+
+        function printPage() {
+            window.print();
+        }
+    </script>
+    <style>
+        .btn-styled {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #3498db;
+            border: none;
+            border-radius: 4px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease-in-out;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .btn-styled:hover {
+            background-color: #2980b9;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        #printBtn {
+            margin-left: 400px;
+        }
+
+        #expression p {
+            font-size: 18px;
+            margin: 8px 0;
+            display: block;
+            line-height: 1.6;
+            min-height: 40px;
+        }
+
+        .fraction {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: stretch;
+            vertical-align: middle;
+            margin: 0 2px;
+            line-height: 1.1;
+        }
+
+        .fraction .num {
+            border-bottom: 1.5px solid #333;
+            padding: 0 2px 0 2px;
+            font-size: 15px;
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .fraction .den {
+            padding: 0 2px 0 2px;
+            font-size: 15px;
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .time-info {
+            font-style: italic;
+            color: #666;
+        }
+
+        @media print {
+            body {
+                min-width: auto !important;
+                overflow-x: hidden !important;
+                font-family: "SimSun", "Songti SC", "STSong", "Microsoft YaHei", sans-serif !important;
+            }
+            .btn-styled, .donate-section, div[style*="border-top"], div[style*="justify-content"], a[href], #history, #printBtn {
+                display: none !important;
+            }
+            h1 {
+                font-size: 24px !important;
+                margin-bottom: 10px !important;
+            }
+            #expression p {
+                font-size: 18px !important;
+                font-family: "SimSun", "Songti SC", "STSong", "Microsoft YaHei", sans-serif !important;
+                margin: 8px 0 !important;
+                line-height: 1.6 !important;
+                min-height: 40px !important;
+            }
+            .time-info {
+                display: block !important;
+                font-style: italic !important;
+                color: #666 !important;
+            }
+        }
+
+        
+        .donate-section {
+            margin-top: 30px;
+            border-top: 1px solid #ccc;
+            padding-top: 20px;
+            text-align: center;
+        }
+        
+        .donate-qr-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .qr-item {
+            text-align: center;
+        }
+        
+        .qr-item img {
+            width: 150px;
+            height: auto;
+            border: 1px solid #eee;
+            border-radius: 8px;
+        }
+    </style>
+<link rel="stylesheet" href="/.autoindex.css"></head>
+<body style="min-width: 1000px; overflow-x: auto;">
+    <h1>数学熟练度 - 直线方程练习</h1>
+    
+    <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <a href="http://106.15.232.237:8080/math/8704359218074516">上一页</a>
+        </div>
+        <a href="http://106.15.232.237:8080/math/4196385271032948">下一页</a>
+    </div>
+    
+    <button onclick="generateExpressions()" id="generateBtn" class="btn-styled">生成练习</button>
+    <button onclick="showAnswers()" id="showAnswerBtn" class="btn-styled" style="display: none;">显示答案</button>
+    <button onclick="hideAnswers()" id="hideAnswerBtn" class="btn-styled" style="display: none;">隐藏答案</button>
+    <button id="printBtn" onclick="printPage()" class="btn-styled">打印页面</button>
+
+    <div id="hintText" style="display: none; margin-top: 20px; font-style: italic; color: #666;">方程可以不化简</div>
+    <div id="expression" style="margin-top: 10px;"></div>
+    
+    <div style="margin-top: 30px; border-top: 1px solid #ccc; padding-top: 20px;">
+        <h3>历史记录</h3>
+        <div id="history" style="max-height: 200px; overflow-y: auto;"></div>
+    </div>
+    
+    <div class="donate-section">
+        <div class="donate-qr-container">
+            <div class="qr-item">
+                <img src="donate_qr_alipay.jpg" alt="支付宝打赏">
+            </div>
+        </div>
+    </div>
+</body>
+</html>
