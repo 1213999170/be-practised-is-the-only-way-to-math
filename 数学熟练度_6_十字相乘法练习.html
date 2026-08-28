@@ -135,6 +135,68 @@
             return "(" + ax + "x" + sign + absB + ")";
         }
 
+        function extractGCD(ax, b) {
+            // 提取 ax 和 b 的最大公约数
+            var g = gcd(ax, b);
+            return {
+                gcd: g,
+                newA: ax / g,
+                newB: b / g
+            };
+        }
+
+        function formatSimplifiedFactor(ax, b) {
+            // 格式化单个因式，返回简化后的字符串和系数
+            var extracted = extractGCD(ax, b);
+            var factorStr = "";
+            
+            if (extracted.newA === 1) {
+                // (x + b) 形式
+                var sign = extracted.newB < 0 ? " - " : " + ";
+                factorStr = "(x" + sign + Math.abs(extracted.newB) + ")";
+            } else {
+                // (ax + b) 形式
+                var sign = extracted.newB < 0 ? " - " : " + ";
+                factorStr = "(" + extracted.newA + "x" + sign + Math.abs(extracted.newB) + ")";
+            }
+            
+            return {
+                gcd: extracted.gcd,
+                str: factorStr,
+                a: extracted.newA,
+                b: extracted.newB
+            };
+        }
+
+        function generateAnswer(a, b, c, d) {
+            // 分别提取两个因式的公因数
+            var factor1 = formatSimplifiedFactor(a, b);
+            var factor2 = formatSimplifiedFactor(c, d);
+            
+            // 计算前面的总系数
+            var totalGcd = factor1.gcd * factor2.gcd;
+            
+            // 检查两个因式是否相同（比较提取公因数后的形式）
+            var isSameFactor = (factor1.a === factor2.a && factor1.b === factor2.b);
+            
+            var answer = "";
+            
+            // 如果有总系数，放在前面
+            if (totalGcd !== 1) {
+                answer = totalGcd;
+            }
+            
+            if (isSameFactor) {
+                // 两个因式相同，写成平方形式
+                answer += factor1.str + "²";
+            } else {
+                // 两个因式不同，直接相乘
+                answer += factor1.str + factor2.str;
+            }
+            
+            return answer;
+        }
+
         function generateExpression() {
             var a = getNonZeroRandom(1, 5);
             var c = getNonZeroRandom(1, 5);
@@ -150,7 +212,7 @@
             if (bc !== 0) terms.push(formatTerm(bc, "", terms.length === 0));
             var expr = terms.join(" ") + " = ";
 
-            var answer = formatFactor(a, b) + formatFactor(c, d);
+            var answer = generateAnswer(a, b, c, d);
 
             return { expression: expr, answer: answer };
         }
@@ -224,12 +286,12 @@
             timeContainer.style.marginTop = '20px';
 
             var passingP = document.createElement('p');
-            passingP.textContent = '合格线: ' + formatTime(180) + '，连续三次完成';
+            passingP.textContent = '合格线: ' + formatTime(360) + '，连续三次完成';
             passingP.style.marginBottom = '5px';
             timeContainer.appendChild(passingP);
 
             var excellentP = document.createElement('p');
-            excellentP.textContent = '优秀线: ' + formatTime(360) + '，连续三次完成';
+            excellentP.textContent = '优秀线: ' + formatTime(180) + '，连续三次完成';
             timeContainer.appendChild(excellentP);
 
             outputDiv.appendChild(timeContainer);
@@ -284,12 +346,12 @@
             timeContainer.style.marginTop = '20px';
 
             var passingP = document.createElement('p');
-            passingP.textContent = '合格线: ' + formatTime(180) + '，连续三次完成';
+            passingP.textContent = '合格线: ' + formatTime(360) + '，连续三次完成';
             passingP.style.marginBottom = '5px';
             timeContainer.appendChild(passingP);
 
             var excellentP = document.createElement('p');
-            excellentP.textContent = '优秀线: ' + formatTime(360) + '，连续三次完成';
+            excellentP.textContent = '优秀线: ' + formatTime(180) + '，连续三次完成';
             timeContainer.appendChild(excellentP);
 
             outputDiv.appendChild(timeContainer);
