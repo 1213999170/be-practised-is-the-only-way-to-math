@@ -435,6 +435,7 @@
     <button onclick="showAnswers()" id="showAnswerBtn" class="btn-styled" style="display: none;">显示答案</button>
     <button onclick="hideAnswers()" id="hideAnswerBtn" class="btn-styled" style="display: none;">隐藏答案</button>
     <div class="custom-controls">
+        <button onclick="generateCustomExpressions()" class="btn-styled">生成自定义</button>
         <select id="digitsA" class="digit-select">
             <option value="1">1位数</option>
             <option value="2" selected>2位数</option>
@@ -450,7 +451,6 @@
             <option value="4">4位数</option>
             <option value="5">5位数</option>
         </select>
-        <button onclick="generateCustomExpressions()" class="btn-styled">生成自定义</button>
     </div>
 
     <div id="expression"></div>
