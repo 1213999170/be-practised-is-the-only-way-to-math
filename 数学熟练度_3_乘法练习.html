@@ -167,10 +167,6 @@
             outputDiv.appendChild(timeContainer);
         }
 
-        function printPage() {
-            window.print();
-        }
-
         function getTimeStandards(da, db) {
             // 1位数×2位数 或 2位数×1位数
             if ((da === 1 && db === 2) || (da === 2 && db === 1)) {
@@ -314,10 +310,6 @@
             transform: translateY(-2px);
         }
 
-        #printBtn {
-            margin-left: 10px;
-        }
-
         #expression p {
             font-size: 20px;
             margin: 35px 0;
@@ -339,7 +331,7 @@
                 overflow-x: hidden !important;
                 font-family: "SimSun", "Songti SC", "STSong", "Microsoft YaHei", sans-serif !important;
             }
-            .btn-styled, .donate-section, div[style*="border-top"], div[style*="justify-content"], a[href], #history, #printBtn {
+            .btn-styled, .donate-section, div[style*="border-top"], div[style*="justify-content"], a[href], #history {
                 display: none !important;
             }
             h1 {
@@ -418,6 +410,10 @@
             vertical-align: middle;
         }
 
+        .custom-controls {
+            margin-top: 10px;
+        }
+
         @media print {
             .digit-select, .multiply-sign, .custom-separator {
                 display: none !important;
@@ -438,24 +434,24 @@
     <button onclick="generateExpressions()" id="generateBtn" class="btn-styled">生成推荐练习</button>
     <button onclick="showAnswers()" id="showAnswerBtn" class="btn-styled" style="display: none;">显示答案</button>
     <button onclick="hideAnswers()" id="hideAnswerBtn" class="btn-styled" style="display: none;">隐藏答案</button>
-    <span class="custom-separator">|</span>
-    <select id="digitsA" class="digit-select">
-        <option value="1">1位数</option>
-        <option value="2" selected>2位数</option>
-        <option value="3">3位数</option>
-        <option value="4">4位数</option>
-        <option value="5">5位数</option>
-    </select>
-    <span class="multiply-sign">×</span>
-    <select id="digitsB" class="digit-select">
-        <option value="1">1位数</option>
-        <option value="2" selected>2位数</option>
-        <option value="3">3位数</option>
-        <option value="4">4位数</option>
-        <option value="5">5位数</option>
-    </select>
-    <button onclick="generateCustomExpressions()" class="btn-styled">生成自定义</button>
-    <button id="printBtn" onclick="printPage()" class="btn-styled">打印页面</button>
+    <div class="custom-controls">
+        <select id="digitsA" class="digit-select">
+            <option value="1">1位数</option>
+            <option value="2" selected>2位数</option>
+            <option value="3">3位数</option>
+            <option value="4">4位数</option>
+            <option value="5">5位数</option>
+        </select>
+        <span class="multiply-sign">×</span>
+        <select id="digitsB" class="digit-select">
+            <option value="1">1位数</option>
+            <option value="2" selected>2位数</option>
+            <option value="3">3位数</option>
+            <option value="4">4位数</option>
+            <option value="5">5位数</option>
+        </select>
+        <button onclick="generateCustomExpressions()" class="btn-styled">生成自定义</button>
+    </div>
 
     <div id="expression"></div>
     <div style="margin-top: 30px; border-top: 1px solid #ccc; padding-top: 20px;">
