@@ -90,7 +90,7 @@
             timeContainer.className = 'time-info';
 
             var passingP = document.createElement('p');
-            passingP.textContent = '合格线: ' + formatTime(900) + '，连续三次完成';
+            passingP.textContent = '合格线: ' + formatTime(600) + '，连续三次完成';
             passingP.style.marginBottom = '5px';
             timeContainer.appendChild(passingP);
 
@@ -161,7 +161,7 @@
             timeContainer.appendChild(passingP);
 
             var excellentP = document.createElement('p');
-            excellentP.textContent = '优秀线：请练习4位数乘5位数';
+            excellentP.textContent = '优秀线：请参考推荐练习';
             timeContainer.appendChild(excellentP);
 
             outputDiv.appendChild(timeContainer);
@@ -218,7 +218,7 @@
             }
             // 4位数×5位数 或 5位数×4位数
             if ((da === 4 && db === 5) || (da === 5 && db === 4)) {
-                return { passing: 900, excellent: 0 };
+                return { passing: 600, excellent: 0 };
             }
             // 其他组合无标准
             return { passing: 0, excellent: 0 };
@@ -275,7 +275,7 @@
             timeContainer.appendChild(passingP);
 
             var excellentP = document.createElement('p');
-            excellentP.textContent = '优秀线：请练习4位数乘5位数';
+            excellentP.textContent = '优秀线：请参考推荐练习';
             timeContainer.appendChild(excellentP);
 
             outputDiv.appendChild(timeContainer);

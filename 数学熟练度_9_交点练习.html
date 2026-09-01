@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>数学熟练度 - 交点练习</title>
+    <style>
+        .btn-styled {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #3498db;
+            border: none;
+            border-radius: 4px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease-in-out;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .btn-styled:hover {
+            background-color: #2980b9;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        #printBtn {
+            margin-left: 400px;
+        }
+
+        #expression p {
+            font-size: 20px;
+            margin: 0;
+            display: block;
+            line-height: 1.6;
+        }
+
+        .question-intro {
+            margin: 0 0 16px;
+            font-size: 20px;
+        }
+
+        .question-block {
+            display: flex;
+            align-items: center;
+            margin: 16px 0 22px;
+            font-size: 20px;
+        }
+
+        .equation-system {
+            display: inline-flex;
+            align-items: stretch;
+            vertical-align: middle;
+            width: 320px;
+        }
+
+        .question-number {
+            margin-right: 6px;
+        }
+
+        .system-brace {
+            font-family: "Times New Roman", serif;
+            font-size: 3.2em;
+            font-weight: 200;
+            line-height: 0.78;
+            transform: scaleX(0.7);
+            transform-origin: center;
+            margin: 0 5px 0 -3px;
+        }
+
+        .equation-lines {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            line-height: 1.55;
+        }
+
+        .answer-line {
+            margin-left: 64px;
+            white-space: nowrap;
+        }
+
+        .square-root {
+            display: inline-block;
+            vertical-align: middle;
+            margin: 0 1px;
+        }
+
+        .time-info {
+            font-style: italic;
+            color: #666;
+        }
+
+        @media print {
+            body {
+                min-width: auto !important;
+                overflow-x: hidden !important;
+                font-family: "SimSun", "Songti SC", "STSong", "Microsoft YaHei", sans-serif !important;
+            }
+            .btn-styled, .donate-section, div[style*="border-top"], div[style*="justify-content"], a[href], #history, #printBtn {
+                display: none !important;
+            }
+            h1 {
+                font-size: 24px !important;
+                margin-bottom: 10px !important;
+            }
+            #expression p {
+                font-size: 18px !important;
+                font-family: "SimSun", "Songti SC", "STSong", "Microsoft YaHei", sans-serif !important;
+                margin: 12px 0 !important;
+            }
+            .time-info {
+                display: block !important;
+                font-style: italic !important;
+                color: #666 !important;
+            }
+        }
+
+        .donate-section {
+            margin-top: 30px;
+            border-top: 1px solid #ccc;
+            padding-top: 20px;
+            text-align: center;
+        }
+
+        .donate-qr-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .qr-item {
+            text-align: center;
+        }
+
+        .qr-item img {
+            width: 150px;
+            height: auto;
+            border: 1px solid #eee;
+            border-radius: 8px;
+        }
+    </style>
+    <script>
+        function getRandom(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function formatSignedTerm(coefficient, variable, isFirst) {
+            if (coefficient === 0) return "";
+            var sign = coefficient < 0 ? (isFirst ? "-" : " - ") : (isFirst ? "" : " + ");
+            var magnitude = Math.abs(coefficient);
+            var term = variable && magnitude === 1 ? variable : magnitude + variable;
+            return sign + term;
+        }
+
+        function formatQuadratic(a, b, c, d) {
+            var terms = [];
+            terms.push(formatSignedTerm(a, "x²", true));
+            if (b !== 0) terms.push(formatSignedTerm(b, "x", false));
+            if (c !== 0) terms.push(formatSignedTerm(c, "k", false));
+            if (d !== 0) terms.push(formatSignedTerm(d, "", false));
+            return "y = " + terms.join("");
+        }
+
+        function formatLine(e) {
+            var line = "y = kx";
+            if (e > 0) return line + " + " + e;
+            if (e < 0) return line + " - " + Math.abs(e);
+            return line;
+        }
+
+        function simplifySquareRoot(value) {
+            var outside = 1;
+            var inside = value;
+            for (var factor = 2; factor * factor <= inside; factor++) {
+                while (inside % (factor * factor) === 0) {
+                    outside *= factor;
+                    inside /= factor * factor;
+                }
+            }
+            return { outside: outside, inside: inside };
+        }
+
+        function formatSquareRoot(value) {
+            return '<math class="square-root"><msqrt><mn>' + value + "</mn></msqrt></math>";
+        }
+
+        function formatKSolutions(center, radicand) {
+            var simplified = simplifySquareRoot(radicand);
+            var rootTerm = 2 * simplified.outside;
+            if (simplified.inside === 1) {
+                return "k<sub>1</sub> = " + formatKValue(center + rootTerm) + ", k<sub>2</sub> = " + formatKValue(center - rootTerm);
+            }
+                 var rootExpression = rootTerm + formatSquareRoot(simplified.inside);
+                 return "k<sub>1</sub> = " + formatKValue(center) + " + " + rootExpression +
+                     ", k<sub>2</sub> = " + formatKValue(center) + " - " + rootExpression;
+        }
+
+        function formatKValue(value) {
+            return value === 0 ? "0" : value.toString();
+        }
+
+        function generateExpression() {
+            var a = getRandom(1, 2);
+            var b = getRandom(-3, 5);
+            var c = getRandom(-2, 3);
+            var d = getRandom(-3, 5);
+            var e = getRandom(-3, 5);
+            var radicand = a * (b * c + a * c * c + d - e);
+            var center = b + 2 * a * c;
+            var answer;
+
+            if (radicand < 0) {
+                answer = "无解";
+            } else if (radicand === 0) {
+                answer = "k = " + formatKValue(center);
+            } else {
+                answer = formatKSolutions(center, radicand);
+            }
+
+            return {
+                quadratic: formatQuadratic(a, b, c, d),
+                line: formatLine(e),
+                answer: answer
+            };
+        }
+
+        var n = 5;
+        var currentExpressions = [];
+        var originalExpressions = [];
+        var historyRecords = [];
+        var historyIndex = 0;
+        var hasGenerated = false;
+
+        function createExpressionLine(outputDiv, expressions) {
+            var intro = document.createElement("div");
+            intro.className = "question-intro";
+            intro.textContent = "当下列给定的抛物线和直线只有一个交点时，k的值是多少？";
+            outputDiv.appendChild(intro);
+
+            expressions.forEach(function(expr, index) {
+                var question = document.createElement("div");
+                question.className = "question-block";
+                question.dataset.answer = expr.answer;
+                question.dataset.quadratic = expr.quadratic;
+                question.dataset.line = expr.line;
+                question.innerHTML = '<span class="question-number">' + (index + 1) + '.</span>' +
+                    '<span class="equation-system"><span class="system-brace">{</span><span class="equation-lines">' +
+                    '<span>' + expr.quadratic + '</span><span>' + expr.line + '</span></span></span>';
+                outputDiv.appendChild(question);
+                currentExpressions.push(question);
+            });
+        }
+
+        function showAnswers() {
+            currentExpressions.forEach(function(question) {
+                if (!question.querySelector(".answer-line")) {
+                    var answer = document.createElement("div");
+                    answer.className = "answer-line";
+                    answer.innerHTML = "答案：" + question.dataset.answer;
+                    question.appendChild(answer);
+                }
+            });
+        }
+
+        function hideAnswers() {
+            currentExpressions.forEach(function(question) {
+                var answer = question.querySelector(".answer-line");
+                if (answer) answer.remove();
+            });
+        }
+
+        function formatTime(seconds) {
+            var minutes = Math.floor(seconds / 60);
+            var remainingSeconds = seconds % 60;
+            return minutes > 0 ? minutes + " 分 " + remainingSeconds + " 秒" : remainingSeconds + " 秒";
+        }
+
+        function appendTimeInfo(outputDiv) {
+            var timeContainer = document.createElement("div");
+            timeContainer.className = "time-info";
+            timeContainer.style.marginTop = "20px";
+
+            var passingP = document.createElement("p");
+            passingP.textContent = "合格线: " + formatTime(360) + "，连续三次完成";
+            passingP.style.marginBottom = "5px";
+            timeContainer.appendChild(passingP);
+
+            var excellentP = document.createElement("p");
+            excellentP.textContent = "优秀线: " + formatTime(180) + "，连续三次完成";
+            timeContainer.appendChild(excellentP);
+            outputDiv.appendChild(timeContainer);
+        }
+
+        function generateExpressions() {
+            var outputDiv = document.getElementById("expression");
+            outputDiv.textContent = "";
+            currentExpressions = [];
+            originalExpressions = [];
+
+            var expressions = [];
+            for (var index = 0; index < n; index++) {
+                expressions.push(generateExpression());
+            }
+
+            createExpressionLine(outputDiv, expressions);
+            appendTimeInfo(outputDiv);
+
+            if (!hasGenerated) {
+                hasGenerated = true;
+                document.getElementById("generateBtn").textContent = "重新生成";
+                document.getElementById("showAnswerBtn").style.display = "inline-block";
+                document.getElementById("hideAnswerBtn").style.display = "inline-block";
+            }
+
+            addToHistory(expressions);
+        }
+
+        function addToHistory(expressions) {
+            historyIndex++;
+            var record = {
+                id: historyIndex,
+                expressions: JSON.parse(JSON.stringify(expressions)),
+                timestamp: new Date().toLocaleTimeString()
+            };
+            historyRecords.push(record);
+
+            var historyItem = document.createElement("div");
+            historyItem.textContent = "记录 #" + record.id + " - " + record.timestamp;
+            historyItem.style.cursor = "pointer";
+            historyItem.style.margin = "5px 0";
+            historyItem.style.padding = "5px";
+            historyItem.style.backgroundColor = "#f5f5f5";
+            historyItem.style.borderRadius = "3px";
+            historyItem.onclick = function() {
+                restoreFromHistory(record);
+            };
+            document.getElementById("history").appendChild(historyItem);
+        }
+
+        function restoreFromHistory(record) {
+            var outputDiv = document.getElementById("expression");
+            outputDiv.textContent = "";
+            currentExpressions = [];
+            originalExpressions = [];
+            createExpressionLine(outputDiv, record.expressions);
+            appendTimeInfo(outputDiv);
+        }
+    </script>
+<link rel="stylesheet" href="/.autoindex.css"></head>
+<body style="min-width: 1000px; overflow-x: auto;">
+    <h1>数学熟练度 - 交点练习</h1>
+
+    <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <a href="http://106.15.232.237:8080/math/4196385271032948">上一页</a>
+        </div>
+        <a href="http://106.15.232.237:8080/math/7362058149603725">下一页</a>
+    </div>
+
+    <button onclick="generateExpressions()" id="generateBtn" class="btn-styled">生成练习</button>
+    <button onclick="showAnswers()" id="showAnswerBtn" class="btn-styled" style="display: none;">显示答案</button>
+    <button onclick="hideAnswers()" id="hideAnswerBtn" class="btn-styled" style="display: none;">隐藏答案</button>
+    <button id="printBtn" onclick="window.print()" class="btn-styled">打印页面</button>
+
+    <div id="expression" style="margin-top: 20px;"></div>
+
+    <div style="margin-top: 30px; border-top: 1px solid #ccc; padding-top: 20px;">
+        <h3>历史记录</h3>
+        <div id="history" style="max-height: 200px; overflow-y: auto;"></div>
+    </div>
+
+    <div class="donate-section">
+        <p>本页面免费使用，亦欢迎打赏</p>
+        <div class="donate-qr-container">
+            <div class="qr-item">
+                <img src="donate_qr_alipay.jpg" alt="支付宝打赏">
+            </div>
+        </div>
+    </div>
+</body>
+</html>
