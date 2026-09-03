@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>数学熟练度 - 分式不等式练习</title>
+    <style>
+        .btn-styled { display: inline-block; padding: 10px 20px; font-size: 16px; color: white; background-color: #3498db; border: none; border-radius: 4px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); transition: all 0.3s ease-in-out; cursor: pointer; margin-right: 10px; }
+        .btn-styled:hover { background-color: #2980b9; box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1); transform: translateY(-2px); }
+        #printBtn { margin-left: 400px; }
+        #expression p { font-size: 20px; margin: 0; line-height: 1.6; }
+        .question-intro { margin: 0 0 16px; font-size: 20px; }
+        .question-block { display: flex; align-items: center; margin: 16px 0 22px; font-size: 20px; }
+        .question-number { margin-right: 6px; }
+        .fraction-expression { display: inline-flex; align-items: center; gap: 8px; }
+        .fraction { display: inline-grid; grid-template-columns: max-content; justify-items: center; vertical-align: middle; line-height: 1.15; }
+        .fraction .numerator { border-bottom: 1px solid currentColor; padding: 0 5px 2px; min-width: 100%; box-sizing: border-box; text-align: center; }
+        .fraction .denominator { padding: 2px 5px 0; }
+        .fraction-sign { display: inline-block; margin-right: 0.2em; vertical-align: middle; }
+        .answer-line { margin-left: 20px; white-space: nowrap; }
+        .interval-answer { white-space: normal; }
+        .time-info { font-style: italic; color: #666; }
+        @media print {
+            body { min-width: auto !important; overflow-x: hidden !important; font-family: "SimSun", "Songti SC", "STSong", "Microsoft YaHei", sans-serif !important; }
+            .btn-styled, .donate-section, div[style*="border-top"], div[style*="justify-content"], a[href], #history, #printBtn { display: none !important; }
+            h1 { font-size: 24px !important; margin-bottom: 10px !important; }
+            #expression p { font-size: 18px !important; margin: 12px 0 !important; }
+        }
+        .donate-section { margin-top: 30px; border-top: 1px solid #ccc; padding-top: 20px; text-align: center; }
+        .donate-qr-container { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }
+        .qr-item { text-align: center; }
+        .qr-item img { width: 150px; height: auto; border: 1px solid #eee; border-radius: 8px; }
+    </style>
+    <script>
+        function getRandom(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function gcd(first, second) {
+            first = Math.abs(first);
+            second = Math.abs(second);
+            while (second) {
+                var remainder = first % second;
+                first = second;
+                second = remainder;
+            }
+            return first || 1;
+        }
+
+        function fraction(numerator, denominator) {
+            if (denominator < 0) { numerator = -numerator; denominator = -denominator; }
+            var divisor = gcd(numerator, denominator);
+            return { numerator: numerator / divisor, denominator: denominator / divisor };
+        }
+
+        function add(first, second) {
+            return fraction(first.numerator * second.denominator + second.numerator * first.denominator, first.denominator * second.denominator);
+        }
+
+        function subtract(first, second) {
+            return fraction(first.numerator * second.denominator - second.numerator * first.denominator, first.denominator * second.denominator);
+        }
+
+        function compare(first, second) {
+            return first.numerator * second.denominator - second.numerator * first.denominator;
+        }
+
+        function numberFraction(value) {
+            return fraction(value, 1);
+        }
+        function midpoint(first, second) {
+            if (first === null) return subtract(second, numberFraction(1));
+            if (second === null) return add(first, numberFraction(1));
+            return fraction(first.numerator * second.denominator + second.numerator * first.denominator, 2 * first.denominator * second.denominator);
+        }
+
+        function formatFraction(value) {
+            if (value.numerator === 0) return "0";
+            if (value.denominator === 1) return String(value.numerator);
+            return value.numerator + "/" + value.denominator;
+        }
+
+        function formatSignedTerm(coefficient, variable, isFirst) {
+            if (coefficient === 0) return "";
+            var sign = coefficient < 0 ? (isFirst ? "-" : " - ") : (isFirst ? "" : " + ");
+            var magnitude = Math.abs(coefficient);
+            return sign + (variable && magnitude === 1 ? variable : magnitude + variable);
+        }
+
+        function formatLinearTerm(coefficient, constant) {
+            var result = formatSignedTerm(coefficient, "x", true);
+            if (constant !== 0) result += formatSignedTerm(constant, "", result === "");
+            return result || "0";
+        }
+
+        function fractionHtml(numerator, denominator) {
+            return '<span class="fraction"><span class="numerator">' + numerator + '</span><span class="denominator">' + denominator + '</span></span>';
+        }
+
+        function inequalityHtml(a, b, c, d, e, f, relation) {
+            var displayRelation = relation === ">=" ? "≥" : relation === "<=" ? "≤" : relation;
+            return fractionHtml(a, formatLinearTerm(b, c)) + " " + displayRelation + " " + fractionHtml(d, formatLinearTerm(e, f));
+        }
+
+        function relationIsTrue(sign, relation) {
+            return relation === ">" ? sign > 0 : relation === ">=" ? sign >= 0 : relation === "<" ? sign < 0 : sign <= 0;
+        }
+
+        function endpointHtml(value) {
+            if (value === null) return "∞";
+            if (value.denominator === 1) return formatFraction(value);
+            var sign = value.numerator < 0 ? '<span class="fraction-sign">-</span>' : "";
+            return sign + fractionHtml(Math.abs(value.numerator), value.denominator);
+        }
+
+        function intervalHtml(left, right, leftIncluded, rightIncluded) {
+            var leftBracket = leftIncluded ? "[" : "(";
+            var rightBracket = rightIncluded ? "]" : ")";
+            var leftText = left === null ? "-∞" : endpointHtml(left);
+            var rightText = right === null ? "+∞" : endpointHtml(right);
+            return leftBracket + leftText + ", " + rightText + rightBracket;
+        }
+
+        function samePoint(first, second) { return first !== null && second !== null && compare(first, second) === 0; }
+
+        function solveInequality(a, b, c, d, e, f, relation) {
+            var numeratorX = a * e - d * b;
+            var numeratorConstant = a * f - d * c;
+            var denominatorRoots = [fraction(-c, b), fraction(-f, e)];
+            var critical = denominatorRoots.slice();
+            if (numeratorX !== 0) critical.push(fraction(-numeratorConstant, numeratorX));
+            critical.sort(compare);
+            var unique = [];
+            critical.forEach(function(point) {
+                if (!unique.length || !samePoint(unique[unique.length - 1], point)) unique.push(point);
+            });
+
+            function pointSign(value) {
+                var numerator = numeratorX * value.numerator + numeratorConstant * value.denominator;
+                var firstDenominator = b * value.numerator + c * value.denominator;
+                var secondDenominator = e * value.numerator + f * value.denominator;
+                return numerator * firstDenominator * secondDenominator;
+            }
+
+            var intervals = [];
+            for (var index = 0; index <= unique.length; index++) {
+                var left = index === 0 ? null : unique[index - 1];
+                var right = index === unique.length ? null : unique[index];
+                intervals.push({ left: left, right: right, valid: relationIsTrue(pointSign(midpoint(left, right)), relation) });
+            }
+
+            function pointValid(point) {
+                var firstDenominator = b * point.numerator + c * point.denominator;
+                var secondDenominator = e * point.numerator + f * point.denominator;
+                if (firstDenominator === 0 || secondDenominator === 0) return false;
+                return relationIsTrue(pointSign(point), relation);
+            }
+
+            var pieces = [];
+            intervals.forEach(function(interval, index) {
+                if (!interval.valid) return;
+                var leftIncluded = interval.left !== null && pointValid(interval.left);
+                var rightIncluded = interval.right !== null && pointValid(interval.right);
+                if (pieces.length && interval.left !== null && pieces[pieces.length - 1].right !== null && rightBoundaryIncluded(pieces[pieces.length - 1], interval.left)) {
+                    pieces[pieces.length - 1].right = interval.right;
+                    pieces[pieces.length - 1].rightIncluded = rightIncluded;
+                } else {
+                    pieces.push({ left: interval.left, right: interval.right, leftIncluded: leftIncluded, rightIncluded: rightIncluded });
+                }
+            });
+
+            unique.forEach(function(point, index) {
+                if (!pointValid(point) || (index > 0 && intervals[index - 1].valid) || intervals[index + 1].valid) return;
+                pieces.push({ left: point, right: point, leftIncluded: true, rightIncluded: true, singleton: true });
+            });
+            pieces.sort(function(first, second) { return first.left === null ? -1 : second.left === null ? 1 : compare(first.left, second.left); });
+            pieces = pieces.filter(function(piece, index) {
+                if (!piece.singleton) return true;
+                return !pieces.some(function(other, otherIndex) {
+                    return otherIndex !== index && !other.singleton &&
+                        (other.left === null || compare(other.left, piece.left) < 0 || (samePoint(other.left, piece.left) && other.leftIncluded)) &&
+                        (other.right === null || compare(piece.left, other.right) < 0 || (samePoint(piece.left, other.right) && other.rightIncluded));
+                });
+            });
+            if (!pieces.length) return "无解";
+            return pieces.map(function(piece) { return piece.singleton ? "{" + endpointHtml(piece.left) + "}" : intervalHtml(piece.left, piece.right, piece.leftIncluded, piece.rightIncluded); }).join(" ∪ ");
+        }
+
+        function rightBoundaryIncluded(piece, boundary) {
+            return samePoint(piece.right, boundary) && piece.rightIncluded;
+        }
+
+        function generateExpression() {
+            var a = getRandom(1, 3), b = getRandom(1, 3), d = getRandom(1, 3), e = getRandom(1, 3);
+            var c = getRandom(-6, 4), f = getRandom(-6, 4);
+            var relations = [">", ">=", "<", "<="];
+            var relation = relations[getRandom(0, relations.length - 1)];
+            return { question: inequalityHtml(a, b, c, d, e, f, relation), answer: solveInequality(a, b, c, d, e, f, relation) };
+        }
+
+        var n = 5, currentExpressions = [], historyRecords = [], historyIndex = 0, hasGenerated = false;
+
+        function createExpressionLine(outputDiv, expressions) {
+            var intro = document.createElement("div");
+            intro.className = "question-intro";
+            intro.textContent = "解下列分式不等式：";
+            outputDiv.appendChild(intro);
+            expressions.forEach(function(expr, index) {
+                var question = document.createElement("div");
+                question.className = "question-block";
+                question.dataset.answer = expr.answer;
+                question.innerHTML = '<span class="question-number">' + (index + 1) + '.</span><span class="fraction-expression">' + expr.question + '</span>';
+                outputDiv.appendChild(question);
+                currentExpressions.push(question);
+            });
+        }
+
+        function showAnswers() {
+            currentExpressions.forEach(function(question) {
+                if (!question.querySelector(".answer-line")) {
+                    var answer = document.createElement("div");
+                    answer.className = "answer-line interval-answer";
+                    answer.innerHTML = "答案：x ∈ " + question.dataset.answer;
+                    question.appendChild(answer);
+                }
+            });
+        }
+
+        function hideAnswers() { currentExpressions.forEach(function(question) { var answer = question.querySelector(".answer-line"); if (answer) answer.remove(); }); }
+
+        function formatTime(seconds) {
+            var minutes = Math.floor(seconds / 60), remainingSeconds = seconds % 60;
+            return minutes > 0 ? minutes + " 分 " + remainingSeconds + " 秒" : remainingSeconds + " 秒";
+        }
+
+        function appendTimeInfo(outputDiv) {
+            var timeContainer = document.createElement("div");
+            timeContainer.className = "time-info";
+            timeContainer.style.marginTop = "20px";
+            timeContainer.innerHTML = "<p>合格线: " + formatTime(240) + "，连续三次完成</p><p>优秀线: " + formatTime(120) + "，连续三次完成</p>";
+            outputDiv.appendChild(timeContainer);
+        }
+
+        function generateExpressions() {
+            var outputDiv = document.getElementById("expression");
+            outputDiv.textContent = "";
+            currentExpressions = [];
+            var expressions = [];
+            for (var index = 0; index < n; index++) expressions.push(generateExpression());
+            createExpressionLine(outputDiv, expressions);
+            appendTimeInfo(outputDiv);
+            if (!hasGenerated) {
+                hasGenerated = true;
+                document.getElementById("generateBtn").textContent = "重新生成";
+                document.getElementById("showAnswerBtn").style.display = "inline-block";
+                document.getElementById("hideAnswerBtn").style.display = "inline-block";
+            }
+            addToHistory(expressions);
+        }
+
+        function addToHistory(expressions) {
+            historyIndex++;
+            var record = { id: historyIndex, expressions: JSON.parse(JSON.stringify(expressions)), timestamp: new Date().toLocaleTimeString() };
+            historyRecords.push(record);
+            var historyItem = document.createElement("div");
+            historyItem.textContent = "记录 #" + record.id + " - " + record.timestamp;
+            historyItem.style.cssText = "cursor:pointer;margin:5px 0;padding:5px;background-color:#f5f5f5;border-radius:3px;";
+            historyItem.onclick = function() { restoreFromHistory(record); };
+            document.getElementById("history").appendChild(historyItem);
+        }
+
+        function restoreFromHistory(record) {
+            var outputDiv = document.getElementById("expression");
+            outputDiv.textContent = "";
+            currentExpressions = [];
+            createExpressionLine(outputDiv, record.expressions);
+            appendTimeInfo(outputDiv);
+        }
+    </script>
+<link rel="stylesheet" href="/.autoindex.css"></head>
+<body style="min-width: 1000px; overflow-x: auto;">
+    <h1>数学熟练度 - 分式不等式练习</h1>
+    <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+        <a href="数学熟练度_9_交点练习.html">上一页</a>
+        <div>
+            <a href="http://106.15.232.237:8080/math/7362058149603725">上一页</a>
+        </div>
+        <a href="http://106.15.232.237:8080/math/5829147306824519">下一页</a>
+    </div>
+    <button onclick="generateExpressions()" id="generateBtn" class="btn-styled">生成练习</button>
+    <button onclick="showAnswers()" id="showAnswerBtn" class="btn-styled" style="display: none;">显示答案</button>
+    <button onclick="hideAnswers()" id="hideAnswerBtn" class="btn-styled" style="display: none;">隐藏答案</button>
+    <button id="printBtn" onclick="window.print()" class="btn-styled">打印页面</button>
+    <div id="expression" style="margin-top: 20px;"></div>
+    <div style="margin-top: 30px; border-top: 1px solid #ccc; padding-top: 20px;"><h3>历史记录</h3><div id="history" style="max-height: 200px; overflow-y: auto;"></div></div>
+    <div class="donate-section"><p>本页面免费使用，亦欢迎打赏</p><div class="donate-qr-container"><div class="qr-item"><img src="donate_qr_alipay.jpg" alt="支付宝打赏"></div></div></div>
+</body>
+</html>
