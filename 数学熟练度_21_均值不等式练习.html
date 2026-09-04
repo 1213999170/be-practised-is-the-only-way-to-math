@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>数学熟练度 - 均值不等式练习</title>
+    <style>
+        .btn-styled { display: inline-block; padding: 10px 20px; font-size: 16px; color: white; background-color: #3498db; border: none; border-radius: 4px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); transition: all 0.3s ease-in-out; cursor: pointer; margin-right: 10px; }
+        .btn-styled:hover { background-color: #2980b9; box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1); transform: translateY(-2px); }
+        #printBtn { margin-left: 400px; }
+        #expression p { font-size: 20px; margin: 0; line-height: 1.6; }
+        .question-intro { margin: 0 0 16px; font-size: 20px; }
+        .question-block { display: grid; grid-template-columns: 28px 500px max-content; align-items: center; margin: 16px 0 22px; font-size: 20px; line-height: 1.6; }
+        .answer-line { grid-column: 3; grid-row: 1; margin-left: 0; white-space: normal; }
+        .fraction { display: inline-grid; grid-template-columns: max-content; justify-items: center; vertical-align: middle; line-height: 1.15; margin: 0 2px; }
+        .fraction .numerator { min-width: 100%; box-sizing: border-box; padding: 0 4px 2px; border-bottom: 1px solid currentColor; text-align: center; }
+        .fraction .denominator { padding: 2px 4px 0; text-align: center; }
+        .fraction-sign { display: inline-block; margin-right: 0.2em; vertical-align: middle; }
+        .square-root { display: inline-block; vertical-align: middle; margin: 0 1px; }
+        .time-info { font-style: italic; color: #666; }
+        @media print {
+            body { min-width: auto !important; overflow-x: hidden !important; font-family: "SimSun", "Songti SC", "STSong", "Microsoft YaHei", sans-serif !important; }
+            .btn-styled, .donate-section, div[style*="border-top"], div[style*="justify-content"], a[href], #history, #printBtn { display: none !important; }
+            h1 { font-size: 24px !important; margin-bottom: 10px !important; }
+            #expression p, .question-block { font-size: 18px !important; margin: 12px 0 !important; }
+        }
+        .donate-section { margin-top: 30px; border-top: 1px solid #ccc; padding-top: 20px; text-align: center; }
+        .donate-qr-container { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }
+        .qr-item { text-align: center; }
+        .qr-item img { width: 150px; height: auto; border: 1px solid #eee; border-radius: 8px; }
+    </style>
+    <script>
+        function getRandom(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function gcd(first, second) {
+            first = Math.abs(first);
+            second = Math.abs(second);
+            while (second) {
+                var remainder = first % second;
+                first = second;
+                second = remainder;
+            }
+            return first || 1;
+        }
+
+        function fractionHtml(numerator, denominator) {
+            if (denominator === 1) return String(numerator);
+            if (typeof numerator === "number" && typeof denominator === "number") {
+                var divisor = gcd(numerator, denominator);
+                numerator /= divisor;
+                denominator /= divisor;
+                if (denominator < 0) { numerator = -numerator; denominator = -denominator; }
+                if (denominator === 1) return String(numerator);
+                var sign = numerator < 0 ? '<span class="fraction-sign">-</span>' : "";
+                numerator = Math.abs(numerator);
+            }
+            return (sign || "") + '<span class="fraction"><span class="numerator">' + numerator + '</span><span class="denominator">' + denominator + '</span></span>';
+        }
+
+        function coefficientX(coefficient) {
+            return coefficient === 1 ? "x" : coefficient + "x";
+        }
+
+        function coefficientY(coefficient) {
+            return coefficient === 1 ? "y" : coefficient + "y";
+        }
+
+        function signedVariable(coefficient, variable) {
+            if (coefficient === 1) return variable;
+            if (coefficient === -1) return "-" + variable;
+            return coefficient + variable;
+        }
+
+        function cubeRootFraction(numerator, denominator, multiplier) {
+            multiplier = multiplier || 1;
+            var divisor = gcd(numerator, denominator);
+            numerator /= divisor;
+            denominator /= divisor;
+            var numeratorRoot = simplifyCubeRoot(numerator);
+            var denominatorRoot = simplifyCubeRoot(denominator);
+            var coefficientNumerator = multiplier * numeratorRoot.outside;
+            var coefficientDenominator = denominatorRoot.outside * denominatorRoot.inside;
+            var radicand = numeratorRoot.inside * denominatorRoot.inside * denominatorRoot.inside;
+            var rationalizedRoot = simplifyCubeRoot(radicand);
+            coefficientNumerator *= rationalizedRoot.outside;
+            divisor = gcd(coefficientNumerator, coefficientDenominator);
+            coefficientNumerator /= divisor;
+            coefficientDenominator /= divisor;
+            var coefficient = coefficientDenominator === 1 ? String(coefficientNumerator) : fractionHtml(coefficientNumerator, coefficientDenominator);
+            if (rationalizedRoot.inside === 1) return coefficient;
+            var root = '<math class="square-root"><mroot><mn>' + rationalizedRoot.inside + "</mn><mn>3</mn></mroot></math>";
+            return coefficientNumerator === coefficientDenominator ? root : coefficient + root;
+        }
+
+        function simplifySquareRoot(value) {
+            var outside = 1;
+            var inside = value;
+            for (var factor = 2; factor * factor <= inside; factor++) {
+                while (inside % (factor * factor) === 0) {
+                    outside *= factor;
+                    inside /= factor * factor;
+                }
+            }
+            return { outside: outside, inside: inside };
+        }
+
+        function squareRoot(value, multiplier) {
+            multiplier = multiplier || 1;
+            var simplified = simplifySquareRoot(value);
+            var coefficient = multiplier * simplified.outside;
+            if (simplified.inside === 1) return String(coefficient);
+            var root = '<math class="square-root"><msqrt><mn>' + simplified.inside + "</mn></msqrt></math>";
+            return coefficient === 1 ? root : coefficient + root;
+        }
+
+        function simplifyCubeRoot(value) {
+            var outside = 1;
+            var inside = value;
+            for (var factor = 2; factor * factor * factor <= inside; factor++) {
+                while (inside % (factor * factor * factor) === 0) {
+                    outside *= factor;
+                    inside /= factor * factor * factor;
+                }
+            }
+            return { outside: outside, inside: inside };
+        }
+
+        function cubeRoot(value) {
+            var simplified = simplifyCubeRoot(value);
+            if (simplified.inside === 1) return String(simplified.outside);
+            var root = '<math class="square-root"><mroot><mn>' + simplified.inside + "</mn><mn>3</mn></mroot></math>";
+            return simplified.outside === 1 ? root : simplified.outside + root;
+        }
+
+        function questionTypeOne() {
+            var a = getRandom(1, 3), b = getRandom(1, 3), choice = getRandom(0, 2);
+            var condition = fractionHtml("x", a) + " + " + fractionHtml("y", b) + " = 1";
+            if (choice === 0) {
+                return { question: "已知 x, y ≥ 0，" + condition + "，求 xy 的最大值。", answer: "xy 的最大值为 " + fractionHtml(a * b, 4) + "，当且仅当 x = " + fractionHtml(a, 2) + "，y = " + fractionHtml(b, 2) + " 时取得。" };
+            }
+            if (choice === 1) {
+                return { question: "已知 x, y ≥ 0，" + condition + "，求 x<sup>2</sup>y 的最大值。", answer: "x<sup>2</sup>y 的最大值为 " + fractionHtml(4 * a * a * b, 27) + "，当且仅当 x = " + fractionHtml(2 * a, 3) + "，y = " + fractionHtml(b, 3) + " 时取得。" };
+            }
+            return { question: "已知 x, y ≥ 0，" + condition + "，求 xy<sup>2</sup> 的最大值。", answer: "xy<sup>2</sup> 的最大值为 " + fractionHtml(4 * a * b * b, 27) + "，当且仅当 x = " + fractionHtml(a, 3) + "，y = " + fractionHtml(2 * b, 3) + " 时取得。" };
+        }
+
+        function questionTypeTwo() {
+            var a = getRandom(1, 4), b = getRandom(1, 4), m = getRandom(1, 4), choice = getRandom(0, 2);
+            if (choice === 0) {
+                return { question: "已知 x, y ≥ 0，xy = " + m + "，求 " + coefficientX(a) + " + " + coefficientY(b) + " 的最小值。", answer: "最小值为 " + squareRoot(a * b * m, 2) + "，当且仅当 x = √(" + fractionHtml(b * m, a) + ")，y = √(" + fractionHtml(a * m, b) + ") 时取得。" };
+            }
+            if (choice === 1) {
+                return { question: "已知 x, y ≥ 0，xy = " + m + "，求 x<sup>2</sup> + " + coefficientY(b) + " 的最小值。", answer: "最小值为 " + cubeRootFraction(b * b * m * m, 4, 3) + "，当且仅当 x = " + cubeRootFraction(b * m, 2) + "，y = " + fractionHtml(m, cubeRootFraction(b * m, 2)) + " 时取得。" };
+            }
+            return { question: "已知 x, y ≥ 0，xy = " + m + "，求 " + coefficientX(a) + " + y<sup>2</sup> 的最小值。", answer: "最小值为 " + cubeRootFraction(a * a * m * m, 4, 3) + "，当且仅当 x = " + cubeRootFraction(2 * m * m, a) + "，y = " + fractionHtml(m, cubeRootFraction(2 * m * m, a)) + " 时取得。" };
+        }
+
+        function questionTypeThree() {
+            var b = getRandom(1, 4), c = getRandom(1, 4);
+            return { question: "已知 x ≥ 0，求 x(" + b + " - " + coefficientX(c) + ") 的最大值。", answer: "最大值为 " + fractionHtml(b * b, 4 * c) + "，当且仅当 x = " + fractionHtml(b, 2 * c) + " 时取得。" };
+        }
+
+        function questionTypeFour() {
+            var a = getRandom(1, 4), b = getRandom(1, 4), choice = getRandom(0, 2);
+            if (choice === 0) {
+                return { question: "已知 x > 0，求 " + coefficientX(a) + " + " + fractionHtml(b, "x") + " 的最小值。", answer: "最小值为 " + squareRoot(a * b, 2) + "，当且仅当 x = √(" + fractionHtml(b, a) + ") 时取得。" };
+            }
+            if (choice === 1) {
+                return { question: "已知 x > 0，求 " + (a === 1 ? "x" : a + "x") + "<sup>2</sup> + " + fractionHtml(b, "x") + " 的最小值。", answer: "最小值为 " + cubeRootFraction(a * b * b, 4, 3) + "，当且仅当 x = " + cubeRootFraction(b, 2 * a) + " 时取得。" };
+            }
+            return { question: "已知 x > 0，求 " + coefficientX(a) + " + " + fractionHtml(b, "x<sup>2</sup>") + " 的最小值。", answer: "最小值为 " + cubeRootFraction(a * a * b, 4, 3) + "，当且仅当 x = " + cubeRootFraction(2 * b, a) + " 时取得。" };
+        }
+
+        function questionTypeFive() {
+            var a = getRandom(1, 4), b = getRandom(1, 4), c = getRandom(1, 4), d = getRandom(1, 4);
+            if (Math.random() < 0.5) c = -c;
+            if (Math.random() < 0.5) d = -d;
+            var value = a * c * c + b * d * d;
+            return { question: "已知 " + fractionHtml("x<sup>2</sup>", a) + " + " + fractionHtml("y<sup>2</sup>", b) + " = 1，求 " + signedVariable(c, "x") + " " + (d < 0 ? "- " + signedVariable(-d, "y") : "+ " + signedVariable(d, "y")) + " 的最大值。", answer: "最大值为 " + squareRoot(value) + "，当且仅当 x = " + fractionHtml(a * c, "√(" + value + ")") + "，y = " + fractionHtml(b * d, "√(" + value + ")") + " 时取得。" };
+        }
+
+        function questionTypeSix() {
+            var b = getRandom(1, 4), m = getRandom(1, 4);
+            var root = Math.sqrt(b);
+            var answer;
+            if (root < m) {
+                answer = "最小值为 " + fractionHtml(b, m) + "，当且仅当 x = 0 时取得。";
+            } else {
+                var simplified = simplifySquareRoot(b);
+                var minimum = simplified.inside === 1 ? String(2 * simplified.outside - m) : squareRoot(b, 2) + " - " + m;
+                answer = "最小值为 " + minimum + "，当且仅当 x = " + squareRoot(b) + " - " + m + " 时取得。";
+            }
+            return { question: "已知 x ≥ 0，求 x + " + fractionHtml(b, "x + " + m) + " 的最小值。", answer: answer };
+        }
+
+        function generateExpression() {
+            var generators = [questionTypeOne, questionTypeTwo, questionTypeThree, questionTypeFour, questionTypeFive, questionTypeSix];
+            var expression = generators[getRandom(0, generators.length - 1)]();
+            expression.answer = expression.answer.replace(/^[\s\S]*?为\s*([\s\S]*?)，当且仅当[\s\S]*$/, "$1");
+            return expression;
+        }
+
+        var n = 10, currentExpressions = [], historyIndex = 0, hasGenerated = false;
+
+        function createExpressionLine(outputDiv, expressions) {
+            expressions.forEach(function(expr, index) {
+                var question = document.createElement("div");
+                question.className = "question-block";
+                question.dataset.answer = expr.answer;
+                question.innerHTML = '<span class="question-number">' + (index + 1) + '.</span><span>' + expr.question + '</span>';
+                outputDiv.appendChild(question);
+                currentExpressions.push(question);
+            });
+        }
+
+        function showAnswers() {
+            currentExpressions.forEach(function(question) {
+                if (!question.querySelector(".answer-line")) {
+                    var answer = document.createElement("div");
+                    answer.className = "answer-line";
+                    answer.innerHTML = "答案：" + question.dataset.answer;
+                    question.appendChild(answer);
+                }
+            });
+        }
+
+        function hideAnswers() {
+            currentExpressions.forEach(function(question) {
+                var answer = question.querySelector(".answer-line");
+                if (answer) answer.remove();
+            });
+        }
+
+        function appendTimeInfo(outputDiv) {
+            var timeContainer = document.createElement("div");
+            timeContainer.className = "time-info";
+            timeContainer.style.marginTop = "20px";
+            timeContainer.innerHTML = "<p>合格线: 4 分 0 秒，连续三次完成</p><p>优秀线: 2 分 0 秒，连续三次完成</p>";
+            outputDiv.appendChild(timeContainer);
+        }
+
+        function generateExpressions() {
+            var outputDiv = document.getElementById("expression");
+            outputDiv.textContent = "";
+            currentExpressions = [];
+            var expressions = [];
+            for (var index = 0; index < n; index++) expressions.push(generateExpression());
+            createExpressionLine(outputDiv, expressions);
+            appendTimeInfo(outputDiv);
+            if (!hasGenerated) {
+                hasGenerated = true;
+                document.getElementById("generateBtn").textContent = "重新生成";
+                document.getElementById("showAnswerBtn").style.display = "inline-block";
+                document.getElementById("hideAnswerBtn").style.display = "inline-block";
+            }
+            addToHistory(expressions);
+        }
+
+        function addToHistory(expressions) {
+            historyIndex++;
+            var record = { id: historyIndex, expressions: JSON.parse(JSON.stringify(expressions)), timestamp: new Date().toLocaleTimeString() };
+            var historyItem = document.createElement("div");
+            historyItem.textContent = "记录 #" + record.id + " - " + record.timestamp;
+            historyItem.style.cssText = "cursor:pointer;margin:5px 0;padding:5px;background-color:#f5f5f5;border-radius:3px;";
+            historyItem.onclick = function() { restoreFromHistory(record); };
+            document.getElementById("history").appendChild(historyItem);
+        }
+
+        function restoreFromHistory(record) {
+            var outputDiv = document.getElementById("expression");
+            outputDiv.textContent = "";
+            currentExpressions = [];
+            createExpressionLine(outputDiv, record.expressions);
+            appendTimeInfo(outputDiv);
+        }
+    </script>
+<link rel="stylesheet" href="/.autoindex.css"></head>
+<body style="min-width: 1000px; overflow-x: auto;">
+    <h1>数学熟练度 - 均值不等式练习</h1>
+    <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <a href="http://106.15.232.237:8080/math/5829147306824519">上一页</a>
+        </div>
+        <a href="http://106.15.232.237:8080/math/9673412085761304">下一页</a>
+    </div>
+    <button onclick="generateExpressions()" id="generateBtn" class="btn-styled">生成练习</button>
+    <button onclick="showAnswers()" id="showAnswerBtn" class="btn-styled" style="display: none;">显示答案</button>
+    <button onclick="hideAnswers()" id="hideAnswerBtn" class="btn-styled" style="display: none;">隐藏答案</button>
+    <button id="printBtn" onclick="window.print()" class="btn-styled">打印页面</button>
+    <div id="expression" style="margin-top: 20px;"></div>
+    <div style="margin-top: 30px; border-top: 1px solid #ccc; padding-top: 20px;"><h3>历史记录</h3><div id="history" style="max-height: 200px; overflow-y: auto;"></div></div>
+    <div class="donate-section"><p>本页面免费使用，亦欢迎打赏</p><div class="donate-qr-container"><div class="qr-item"><img src="donate_qr_alipay.jpg" alt="支付宝打赏"></div></div></div>
+</body>
+</html>
