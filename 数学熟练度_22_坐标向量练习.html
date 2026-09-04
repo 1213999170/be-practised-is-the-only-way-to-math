@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>数学熟练度 - 坐标向量练习</title>
+    <style>
+        .btn-styled { display: inline-block; padding: 10px 20px; font-size: 16px; color: white; background-color: #3498db; border: none; border-radius: 4px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); transition: all 0.3s ease-in-out; cursor: pointer; margin-right: 10px; }
+        .btn-styled:hover { background-color: #2980b9; box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1); transform: translateY(-2px); }
+        #printBtn { margin-left: 400px; }
+        .question-block { display: grid; grid-template-columns: 28px 560px max-content; align-items: center; margin: 16px 0 22px; font-size: 20px; line-height: 1.6; }
+        .answer-line { grid-column: 3; grid-row: 1; margin-left: 0; white-space: nowrap; }
+        .vector { display: inline-flex; align-items: center; gap: 0; vertical-align: middle; }
+        .vector:not(.vertical) > span + span { margin-left: 0.35em; }
+        .vector.vertical { position: relative; flex-direction: column; gap: 0; line-height: 1.1; padding: 0 5px; }
+        .vector.vertical::before, .vector.vertical::after { content: ""; position: absolute; top: 0; bottom: 0; width: 5px; box-sizing: border-box; }
+        .vector.vertical::before { left: 0; border-left: 1px solid currentColor; border-radius: 100% 0 0 100%; }
+        .vector.vertical::after { right: 0; border-right: 1px solid currentColor; border-radius: 0 100% 100% 0; }
+        .vector.vertical > span { padding: 0 4px; }
+        .fraction { display: inline-grid; grid-template-columns: max-content; justify-items: center; vertical-align: middle; line-height: 1.15; margin: 0 2px; }
+        .fraction .numerator { min-width: 100%; box-sizing: border-box; padding: 0 4px 2px; border-bottom: 1px solid currentColor; text-align: center; }
+        .fraction .denominator { padding: 2px 4px 0; text-align: center; }
+        .fraction-sign { display: inline-block; margin-right: 0.05em; vertical-align: middle; }
+        .time-info { font-style: italic; color: #666; }
+        @media print {
+            body { min-width: auto !important; overflow-x: hidden !important; font-family: "SimSun", "Songti SC", "STSong", "Microsoft YaHei", sans-serif !important; }
+            .btn-styled, .donate-section, div[style*="border-top"], div[style*="justify-content"], a[href], #history, #printBtn { display: none !important; }
+            h1 { font-size: 24px !important; margin-bottom: 10px !important; }
+            .question-block { font-size: 18px !important; margin: 12px 0 !important; }
+        }
+        .donate-section { margin-top: 30px; border-top: 1px solid #ccc; padding-top: 20px; text-align: center; }
+        .donate-qr-container { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }
+        .qr-item { text-align: center; }
+        .qr-item img { width: 150px; height: auto; border: 1px solid #eee; border-radius: 8px; }
+    </style>
+    <script>
+        var coefficients = [[1, 3], [1, 2], [2, 3], [1, 1], [4, 3], [3, 2], [5, 3], [2, 1]];
+        var parallelFactors = [[1, 4], [1, 3], [1, 2], [2, 3], [1, 1], [4, 3], [3, 2], [2, 1]];
+        var currentExpressions = [], historyIndex = 0, hasGenerated = false, n = 10;
+
+        function getRandom(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+        function gcd(first, second) {
+            first = Math.abs(first); second = Math.abs(second);
+            while (second) { var remainder = first % second; first = second; second = remainder; }
+            return first || 1;
+        }
+
+        function makeFraction(numerator, denominator) {
+            if (denominator < 0) { numerator = -numerator; denominator = -denominator; }
+            var divisor = gcd(numerator, denominator);
+            return { numerator: numerator / divisor, denominator: denominator / divisor };
+        }
+
+        function multiplyFraction(value, factor) { return makeFraction(value * factor[0], factor[1]); }
+        function addFractions(first, second) { return makeFraction(first.numerator * second.denominator + second.numerator * first.denominator, first.denominator * second.denominator); }
+        function multiplyFractions(first, second) { return makeFraction(first.numerator * second.numerator, first.denominator * second.denominator); }
+
+        function fractionHtml(numerator, denominator) {
+            if (typeof numerator === "object") { denominator = numerator.denominator; numerator = numerator.numerator; }
+            if (denominator === 1) return String(numerator);
+            var sign = numerator < 0 ? '<span class="fraction-sign">-</span>' : "";
+            return sign + '<span class="fraction"><span class="numerator">' + Math.abs(numerator) + '</span><span class="denominator">' + denominator + '</span></span>';
+        }
+
+        function formatCoordinate(value) { return fractionHtml(value); }
+        function vectorHtml(values, vertical) {
+            var content = values.map(function(value, index) {
+                var comma = !vertical && index < values.length - 1 ? "," : "";
+                return '<span>' + formatCoordinate(value) + comma + '</span>';
+            }).join("");
+            var parentheses = vertical ? "" : "(" + content + ")";
+            return '<span class="vector ' + (vertical ? "vertical" : "") + '">' + (vertical ? content : parentheses) + '</span>';
+        }
+        function rawVectorHtml(values, vertical) {
+            return vectorHtml(values.map(function(value) { return makeFraction(value, 1); }), vertical);
+        }
+        function coefficientText(factor) { return factor[0] === factor[1] ? "" : fractionHtml(factor[0], factor[1]); }
+        function remainderCoefficientText(factor) {
+            var sign = factor[0] < 0 ? " - " : " + ";
+            return sign + fractionHtml(Math.abs(factor[0]), factor[1]);
+        }
+        function factorValue(factor) { return makeFraction(factor[0], factor[1]); }
+        function vectorDimension() { return getRandom(0, 1) === 0 ? 2 : 3; }
+        function randomVector(dimension) { return Array.from({length: dimension}, function() { return getRandom(-6, 6); }); }
+
+        function questionTypeOne() {
+            var dimension = vectorDimension(), first = randomVector(dimension), second = randomVector(dimension);
+            var firstFactor = coefficients[getRandom(0, coefficients.length - 1)];
+            var secondFactor = coefficients[getRandom(0, coefficients.length - 1)];
+            if (firstFactor[0] !== firstFactor[1] && secondFactor[0] !== secondFactor[1]) {
+                if (getRandom(0, 1) === 0) {
+                    firstFactor = [1, 1];
+                } else {
+                    secondFactor = [1, 1];
+                }
+            }
+            var result = first.map(function(value, index) {
+                return addFractions(multiplyFraction(value, firstFactor), multiplyFraction(second[index], secondFactor));
+            });
+            var vertical = getRandom(0, 1) === 1;
+            var question = coefficientText(firstFactor) + rawVectorHtml(first, vertical) + " + " + coefficientText(secondFactor) + rawVectorHtml(second, vertical);
+            return { question: question, answer: "= " + vectorHtml(result, vertical) };
+        }
+
+        function questionTypeTwo() {
+            var first = randomVector(2), second = randomVector(2);
+            var result = first[0] * second[0] + first[1] * second[1];
+            return { question: rawVectorHtml(first, false) + "⋅" + rawVectorHtml(second, false), answer: "= " + result };
+        }
+
+        function questionTypeThree() {
+            var a = [2, 3, 4][getRandom(0, 2)];
+            var vectorChoices = [[1, a], [-1, -a], [a, -1], [-a, 1], [-a, -1]];
+            var firstFactor = parallelFactors[getRandom(0, parallelFactors.length - 1)];
+            var secondFactor = parallelFactors[getRandom(0, parallelFactors.length - 1)];
+            var first = [multiplyFraction(1, firstFactor), multiplyFraction(a, firstFactor)];
+            var choice = vectorChoices[getRandom(0, vectorChoices.length - 1)];
+            var second = [multiplyFraction(choice[0], secondFactor), multiplyFraction(choice[1], secondFactor)];
+            var relation = getRandom(0, 1) === 0 ? "平行" : "垂直";
+            var parallel = multiplyFractions(first[0], second[1]).numerator * multiplyFractions(first[1], second[0]).denominator === multiplyFractions(first[1], second[0]).numerator * multiplyFractions(first[0], second[1]).denominator;
+            var perpendicular = first[0].numerator * second[0].numerator * first[1].denominator * second[1].denominator + first[1].numerator * second[1].numerator * first[0].denominator * second[0].denominator === 0;
+            var vertical = getRandom(0, 1) === 1;
+            return { question: vectorHtml(first, vertical) + " 和 " + vectorHtml(second, vertical) + " 是否" + relation + "？", answer: (relation === "平行" ? parallel : perpendicular) ? "是" : "否" };
+        }
+
+        function questionTypeFour() {
+            var dimension = 2;
+            var first = randomVector(dimension), second = randomVector(dimension);
+            var factorChoices = [[1, 3], [1, 2], [2, 3], [3, 2]];
+            var firstFactor = factorChoices[getRandom(0, factorChoices.length - 1)];
+            var secondFactor = [firstFactor[1] - firstFactor[0], firstFactor[1]];
+            var result = first.map(function(value, index) {
+                return addFractions(multiplyFraction(value, firstFactor), multiplyFraction(second[index], secondFactor));
+            });
+            var vertical = getRandom(0, 1) === 1;
+            var question = coefficientText(firstFactor) + rawVectorHtml(first, vertical) + remainderCoefficientText(secondFactor) + rawVectorHtml(second, vertical);
+            return { question: question, answer: "= " + vectorHtml(result, vertical) };
+        }
+
+        function generateExpression() {
+            var generators = [questionTypeOne, questionTypeTwo, questionTypeThree, questionTypeFour];
+            return generators[getRandom(0, generators.length - 1)]();
+        }
+
+        function createExpressionLine(outputDiv, expressions) {
+            expressions.forEach(function(expression, index) {
+                var question = document.createElement("div");
+                question.className = "question-block";
+                question.dataset.answer = expression.answer;
+                question.innerHTML = '<span>' + (index + 1) + '.</span><span>' + expression.question + '</span>';
+                outputDiv.appendChild(question);
+                currentExpressions.push(question);
+            });
+        }
+
+        function showAnswers() {
+            currentExpressions.forEach(function(question) {
+                if (!question.querySelector(".answer-line")) {
+                    var answer = document.createElement("div");
+                    answer.className = "answer-line";
+                    answer.innerHTML = "答案 " + question.dataset.answer;
+                    question.appendChild(answer);
+                }
+            });
+        }
+
+        function hideAnswers() { currentExpressions.forEach(function(question) { var answer = question.querySelector(".answer-line"); if (answer) answer.remove(); }); }
+
+        function appendTimeInfo(outputDiv) {
+            var timeContainer = document.createElement("div");
+            timeContainer.className = "time-info";
+            timeContainer.style.marginTop = "20px";
+            timeContainer.innerHTML = "<p>合格线: 2 分 30 秒，连续三次完成</p><p>优秀线: 1 分 30 秒，连续三次完成</p>";
+            outputDiv.appendChild(timeContainer);
+        }
+
+        function generateExpressions() {
+            var outputDiv = document.getElementById("expression");
+            outputDiv.textContent = ""; currentExpressions = [];
+            var expressions = [];
+            for (var index = 0; index < n; index++) expressions.push(generateExpression());
+            createExpressionLine(outputDiv, expressions); appendTimeInfo(outputDiv);
+            if (!hasGenerated) {
+                hasGenerated = true;
+                document.getElementById("generateBtn").textContent = "重新生成";
+                document.getElementById("showAnswerBtn").style.display = "inline-block";
+                document.getElementById("hideAnswerBtn").style.display = "inline-block";
+            }
+            addToHistory(expressions);
+        }
+
+        function addToHistory(expressions) {
+            historyIndex++;
+            var record = { id: historyIndex, expressions: JSON.parse(JSON.stringify(expressions)), timestamp: new Date().toLocaleTimeString() };
+            var historyItem = document.createElement("div");
+            historyItem.textContent = "记录 #" + record.id + " - " + record.timestamp;
+            historyItem.style.cssText = "cursor:pointer;margin:5px 0;padding:5px;background-color:#f5f5f5;border-radius:3px;";
+            historyItem.onclick = function() { restoreFromHistory(record); };
+            document.getElementById("history").appendChild(historyItem);
+        }
+
+        function restoreFromHistory(record) {
+            var outputDiv = document.getElementById("expression");
+            outputDiv.textContent = ""; currentExpressions = [];
+            createExpressionLine(outputDiv, record.expressions); appendTimeInfo(outputDiv);
+        }
+    </script>
+<link rel="stylesheet" href="/.autoindex.css"></head>
+<body style="min-width: 1000px; overflow-x: auto;">
+    <h1>数学熟练度 - 坐标向量练习</h1>
+    <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <a href="http://106.15.232.237:8080/math/9673412085761304">上一页</a>
+        </div>
+        <a href="http://106.15.232.237:8080/math/2538694710587623">下一页</a>
+    </div>
+    <button onclick="generateExpressions()" id="generateBtn" class="btn-styled">生成练习</button>
+    <button onclick="showAnswers()" id="showAnswerBtn" class="btn-styled" style="display: none;">显示答案</button>
+    <button onclick="hideAnswers()" id="hideAnswerBtn" class="btn-styled" style="display: none;">隐藏答案</button>
+    <button id="printBtn" onclick="window.print()" class="btn-styled">打印页面</button>
+    <div id="expression" style="margin-top: 20px;"></div>
+    <div style="margin-top: 30px; border-top: 1px solid #ccc; padding-top: 20px;"><h3>历史记录</h3><div id="history" style="max-height: 200px; overflow-y: auto;"></div></div>
+    <div class="donate-section"><p>本页面免费使用，亦欢迎打赏</p><div class="donate-qr-container"><div class="qr-item"><img src="donate_qr_alipay.jpg" alt="支付宝打赏"></div></div></div>
+</body>
+</html>
